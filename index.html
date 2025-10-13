@@ -181,20 +181,18 @@
             cursor: not-allowed;
         }
 
-        .dex-entry img {
+        .dex-entry img.sprite {
             width: 96px;
             height: 96px;
             margin: 0 auto;
             transition: filter 0.3s ease;
+            filter: brightness(0); /* Black silhouette by default */
         }
-        .dex-entry .sprite {
-            filter: brightness(0);
+        .dex-entry.captured img.sprite {
+            filter: brightness(1); /* Full color when captured */
         }
-        .dex-entry.captured .sprite {
-            filter: brightness(1);
-        }
-        .dex-entry.pending .sprite {
-            filter: brightness(1) grayscale(50%);
+        .dex-entry.pending img.sprite {
+            filter: brightness(1) grayscale(50%); /* Color with grayscale for pending */
         }
 
     </style>
@@ -429,21 +427,25 @@
                 if (user) {
                     const discordToken = getDiscordToken();
                     if (discordToken) {
+                        // User is returning from Discord login. Show landing page immediately.
+                        showView('landing');
                         try {
                             discordUser = await fetchDiscordUser(discordToken);
                             await saveUserToFirestore(user.uid, discordUser);
                             renderAuthButtons();
+                            // Load other data in the background
                             loadTeamData();
-                            // Load both captured and pending data for the dex
-                            await Promise.all([loadUserDexData(), loadPendingVerifications()]);
+                            Promise.all([loadUserDexData(), loadPendingVerifications()]);
                         } catch (error) {
-                            console.error("Error with Discord user:", error);
-                            clearSession(true);
+                            console.error("Error during logged-in flow:", error);
+                            clearSession(true); 
                         }
                     } else {
+                        // This is a normal page visit, not a login redirect.
                         renderLoggedOutState();
                     }
                 } else {
+                    // No firebase user yet, sign in anonymously.
                     signInAnonymously(auth).catch(console.error);
                 }
             });
@@ -782,5 +784,4 @@
     </script>
 </body>
 </html>
-
 
