@@ -117,7 +117,9 @@
             position: absolute;
             width: 200px;
             height: 176px;
-            left: 100vw; /* Start the element just off the right side of the viewport */
+            /* Start position is now handled entirely by transform for smoother animation */
+            left: 0; 
+            transform: translateX(100vw); /* Initially position it off-screen to the right */
             animation-name: fly-across;
             animation-timing-function: linear;
             animation-iteration-count: infinite;
@@ -125,12 +127,12 @@
 
         @keyframes fly-across {
             from {
-                /* Start at its initial position (defined in the class) */
-                transform: translateX(0);
+                /* Start it off-screen to the right */
+                transform: translateX(100vw);
             }
             to {
-                /* Move it left by the width of the screen PLUS its own width to go fully off-screen */
-                transform: translateX(calc(-100vw - 200px)); 
+                /* Move it fully off-screen to the left (its own width) */
+                transform: translateX(-200px); 
             }
         }
 
