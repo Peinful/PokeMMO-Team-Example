@@ -188,7 +188,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, addDoc, serverTimestamp, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, addDoc, serverTimestamp, deleteDoc, writeBatch, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         
         const firebaseConfig = { apiKey: "##FIREBASE_API_KEY##", authDomain: "##FIREBASE_AUTH_DOMAIN##", projectId: "##FIREBASE_PROJECT_ID##", storageBucket: "##FIREBASE_STORAGE_BUCKET##", messagingSenderId: "##FIREBASE_MESSAGING_SENDER_ID##", appId: "##FIREBASE_APP_ID##" };
@@ -283,18 +283,26 @@
                 isSiteMaster = true;
                 sitemasterPanelIcon.classList.remove('hidden');
             }
-            const userSnap = await getDocs(query(collection(db, 'users'), where('discordId', '==', discordId)));
-            if (!userSnap.empty) {
-                const userData = userSnap.docs[0].data();
+            
+            // This is the corrected, more direct way to get the user document
+            if (!currentUser) return;
+            const userDocRef = doc(db, 'users', currentUser.uid);
+            const userSnap = await getDoc(userDocRef);
+
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
                 if (userData.rankId) {
                     const rankSnap = await getDoc(doc(db, 'ranks', userData.rankId));
                     if (rankSnap.exists()) {
                         userPermissions = new Set(rankSnap.data().permissions || []);
-                        if (userPermissions.has('can_verify_shinies')) verificationPanelIcon.classList.remove('hidden');
+                        if (userPermissions.has('can_verify_shinies')) {
+                            verificationPanelIcon.classList.remove('hidden');
+                        }
                     }
                 }
             }
         }
+
         function clearSession(isError = false) {
             localStorage.removeItem('discord_token');
             discordUser = null; isSiteMaster = false; userPermissions.clear();
@@ -306,8 +314,8 @@
             const handlers = {
                 'shiny-dex': async () => { if (!isDexLoaded) await fetchPokemonData(); renderDexGrid(); showView('shinyDex'); },
                 'shiny-hall': async () => { if (!isHallLoaded) await fetchPokemonData(); await loadAndRenderShinyHall(); showView('shinyHall'); },
-                'verification-panel': async () => { if (userPermissions.has('can_verify_shinies')) { if(!isStaffPanelLoaded) await fetchPokemonData(); await loadAndRenderVerificationQueue(); showView('verificationPanel'); } },
-                'sitemaster-panel': async () => { if (isSiteMaster) { if(!isMasterPanelLoaded) await loadSiteMasterPanel(); showView('siteMasterPanel'); } },
+                'verification-panel': async () => { if (userPermissions.has('can_verify_shinies') || isSiteMaster) { if(!isStaffPanelLoaded) await fetchPokemonData(); await loadAndRenderVerificationQueue(); showView('verification-panel-view'); } },
+                'sitemaster-panel': async () => { if (isSiteMaster) { if(!isMasterPanelLoaded) await loadSiteMasterPanel(); showView('sitemaster-panel-view'); } },
                 'members': () => { if (discordUser) showView('dashboard'); else handleLogin(); }
             };
             if(handlers[page]) handlers[page]();
@@ -463,3 +471,4 @@
     </script>
 </body>
 </html>
+
