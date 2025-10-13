@@ -142,6 +142,60 @@
                 opacity: 0;
             }
         }
+        
+        /* Shiny Dex Styles */
+        #shiny-dex-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(17, 24, 39, 0.95);
+            backdrop-filter: blur(10px);
+            overflow-y: auto;
+            z-index: 50;
+        }
+        .dex-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 1rem;
+        }
+        .dex-entry {
+            background-color: #374151;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            border: 2px solid transparent;
+        }
+        .dex-entry:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-color: #5865F2;
+        }
+        .dex-entry.pending {
+            border-color: #FBBF24; /* Yellow for pending */
+        }
+        .dex-entry.captured, .dex-entry.pending {
+            cursor: not-allowed;
+        }
+
+        .dex-entry img {
+            width: 96px;
+            height: 96px;
+            margin: 0 auto;
+            transition: filter 0.3s ease;
+        }
+        .dex-entry .sprite {
+            filter: brightness(0);
+        }
+        .dex-entry.captured .sprite {
+            filter: brightness(1);
+        }
+        .dex-entry.pending .sprite {
+            filter: brightness(1) grayscale(50%);
+        }
 
     </style>
 </head>
@@ -222,10 +276,57 @@
 
     </div>
 
+    <!-- Shiny Dex View -->
+    <div id="shiny-dex-view" class="hidden p-4 md:p-8">
+        <header class="flex justify-between items-center mb-8 pb-4 border-b border-gray-700">
+            <button class="back-btn text-gray-400 hover:text-white transition-colors"><i class="fa-solid fa-arrow-left mr-2"></i> Back to Home</button>
+            <h1 class="text-3xl font-bold text-center">Shiny Dex</h1>
+            <div id="dex-counter" class="text-lg text-gray-400 font-semibold">0 / 0</div>
+        </header>
+        <main id="dex-grid" class="dex-grid">
+            <!-- Pokémon entries will be injected here -->
+        </main>
+    </div>
+    
+    <!-- Verification Modal -->
+    <div id="verification-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-[60]">
+        <div class="bg-gray-800 rounded-lg p-8 w-full max-w-md shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                 <h2 id="verify-pokemon-name" class="text-2xl font-bold">Verify Shiny Capture</h2>
+                 <img id="verify-pokemon-sprite" src="" class="w-16 h-16">
+            </div>
+            <p class="text-gray-400 mb-6">Submit the details of your capture for verification by staff.</p>
+            <form id="verification-form">
+                <input type="hidden" id="verify-pokemon-id">
+                <div class="mb-4">
+                    <label for="verify-discord-user" class="block text-sm font-medium text-gray-300 mb-1">Discord Username</label>
+                    <input type="text" id="verify-discord-user" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" readonly>
+                </div>
+                <div class="mb-4">
+                    <label for="verify-ingame-name" class="block text-sm font-medium text-gray-300 mb-1">In-game Name</label>
+                    <input type="text" id="verify-ingame-name" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" required>
+                </div>
+                <div class="mb-4">
+                    <label for="verify-date" class="block text-sm font-medium text-gray-300 mb-1">Date Captured</label>
+                    <input type="date" id="verify-date" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" required>
+                </div>
+                <div class="mb-4">
+                    <label for="verify-encounters" class="block text-sm font-medium text-gray-300 mb-1">Number of Encounters (Optional)</label>
+                    <input type="number" id="verify-encounters" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" min="0">
+                </div>
+                <div class="flex justify-end gap-4 mt-8">
+                    <button type="button" id="cancel-verification-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
+                    <button type="submit" id="submit-verification-btn" class="discord-btn text-white font-bold py-2 px-4 rounded-lg">Submit for Verification</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
     <script type="module">
         // Firebase Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, collection, query, where, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
         // --- ⚙️ CONFIGURATION - These will be replaced by GitHub Actions ---
@@ -239,18 +340,24 @@
         };
         const DISCORD_CLIENT_ID = "##DISCORD_CLIENT_ID##"; 
         const TEAM_ID = "crow-syndicate"; // Hardcoded team ID for now
+        const POKEMON_COUNT = 649;
         // --- END CONFIGURATION ---
 
         // --- STATE ---
         let currentUser = null;
         let discordUser = null;
+        let pokemonData = [];
+        let userDexData = new Set();
+        let userPendingData = new Set();
+        let isDexLoaded = false;
 
         // --- UI ELEMENTS ---
         const appViews = {
             loading: document.getElementById('loading'),
             landing: document.getElementById('landing-view'),
             dashboard: document.getElementById('dashboard-view'),
-            page: document.getElementById('page-view')
+            page: document.getElementById('page-view'),
+            shinyDex: document.getElementById('shiny-dex-view')
         };
         
         const authButtonsContainer = document.getElementById('auth-buttons');
@@ -264,6 +371,17 @@
         const pageContentEl = document.getElementById('page-content');
         const iconLinks = document.querySelectorAll('.icon-item a');
         const backBtns = document.querySelectorAll('.back-btn');
+        const dexGridEl = document.getElementById('dex-grid');
+        const dexCounterEl = document.getElementById('dex-counter');
+
+        // Verification Modal Elements
+        const verificationModal = document.getElementById('verification-modal');
+        const verificationForm = document.getElementById('verification-form');
+        const cancelVerificationBtn = document.getElementById('cancel-verification-btn');
+        const verifyPokemonIdInput = document.getElementById('verify-pokemon-id');
+        const verifyPokemonNameEl = document.getElementById('verify-pokemon-name');
+        const verifyPokemonSpriteEl = document.getElementById('verify-pokemon-sprite');
+        const verifyDiscordUserInput = document.getElementById('verify-discord-user');
 
 
         // --- FIREBASE INITIALIZATION ---
@@ -295,10 +413,10 @@
 
         // --- NAVIGATION & VIEW MANAGEMENT ---
         function showView(viewName) {
+            document.body.style.overflow = (viewName === 'shinyDex') ? 'auto' : 'hidden';
             Object.values(appViews).forEach(view => view.classList.add('hidden'));
             if (appViews[viewName]) {
                  appViews[viewName].classList.remove('hidden');
-                 // Special case for landing page flex layout
                  if(viewName === 'landing') appViews[viewName].classList.add('flex');
             }
         }
@@ -314,9 +432,10 @@
                         try {
                             discordUser = await fetchDiscordUser(discordToken);
                             await saveUserToFirestore(user.uid, discordUser);
-                            // User is logged in, but we still show the landing page by default
                             renderAuthButtons();
                             loadTeamData();
+                            // Load both captured and pending data for the dex
+                            await Promise.all([loadUserDexData(), loadPendingVerifications()]);
                         } catch (error) {
                             console.error("Error with Discord user:", error);
                             clearSession(true);
@@ -380,7 +499,6 @@
             if (!teamSnap.exists()) {
                 console.error("Team document does not exist!");
                 teamNameEl.textContent = "Team Not Found";
-                teamMembersEl.innerHTML = `<p class="text-center text-red-400 col-span-full">The team data could not be loaded. Please contact an administrator.</p>`;
                 return;
             }
             
@@ -418,6 +536,148 @@
                 window.location.href = window.location.pathname + window.location.search;
             } else {
                  renderLoggedOutState();
+            }
+        }
+
+        // --- SHINY DEX LOGIC ---
+        async function showShinyDex() {
+            if (!discordUser) {
+                handleLogin();
+                return;
+            }
+            if (!isDexLoaded) {
+                dexGridEl.innerHTML = `<div class="col-span-full text-center"><div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4 mx-auto"></div><p>Loading Pokémon...</p></div>`;
+                showView('shinyDex');
+                await fetchPokemonData();
+                renderDexGrid();
+                isDexLoaded = true;
+            } else {
+                renderDexGrid();
+                showView('shinyDex');
+            }
+        }
+
+        async function fetchPokemonData() {
+            if(pokemonData.length > 0) return; // Don't re-fetch if already loaded
+            try {
+                const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${POKEMON_COUNT}`);
+                const data = await response.json();
+                pokemonData = data.results.map((p, index) => ({
+                    id: index + 1,
+                    name: p.name.charAt(0).toUpperCase() + p.name.slice(1),
+                    sprite: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${index + 1}.png`
+                }));
+            } catch (error) {
+                console.error("Failed to fetch Pokémon data:", error);
+                dexGridEl.innerHTML = `<p class="text-red-400 text-center col-span-full">Could not load Pokémon data.</p>`;
+            }
+        }
+
+        async function loadUserDexData() {
+            if (!currentUser) return;
+            const dexRef = doc(db, `users/${currentUser.uid}/dex/shiny-dex`);
+            const dexSnap = await getDoc(dexRef);
+            if (dexSnap.exists()) {
+                userDexData = new Set(dexSnap.data().captured || []);
+            } else {
+                userDexData = new Set();
+            }
+        }
+        
+        async function loadPendingVerifications() {
+            if (!currentUser) return;
+            userPendingData = new Set();
+            const q = query(collection(db, "verification-requests"), where("userId", "==", currentUser.uid), where("status", "==", "pending"));
+            const querySnapshot = await getDocs(q);
+            querySnapshot.forEach((doc) => {
+                userPendingData.add(doc.data().pokemonId);
+            });
+        }
+
+
+        function renderDexGrid() {
+            dexCounterEl.textContent = `${userDexData.size} / ${POKEMON_COUNT}`;
+            dexGridEl.innerHTML = pokemonData.map(p => {
+                const isCaptured = userDexData.has(p.id);
+                const isPending = userPendingData.has(p.id);
+                let statusClass = '';
+                if (isCaptured) statusClass = 'captured';
+                else if (isPending) statusClass = 'pending';
+
+                return `
+                <div class="dex-entry ${statusClass}" data-id="${p.id}">
+                    <img src="${p.sprite}" alt="${p.name}" class="sprite">
+                    <p class="text-sm font-medium mt-1">#${String(p.id).padStart(3, '0')}</p>
+                    <p class="text-xs text-gray-400">${p.name}</p>
+                </div>
+            `}).join('');
+
+            document.querySelectorAll('.dex-entry').forEach(entry => {
+                entry.addEventListener('click', handleDexEntryClick);
+            });
+        }
+
+        function handleDexEntryClick(e) {
+            const entry = e.currentTarget;
+            const pokemonId = parseInt(entry.dataset.id, 10);
+            
+            // Prevent action if already captured or pending
+            if (userDexData.has(pokemonId) || userPendingData.has(pokemonId)) {
+                return;
+            }
+
+            const pokemon = pokemonData.find(p => p.id === pokemonId);
+            if(pokemon) {
+                openVerificationModal(pokemon);
+            }
+        }
+
+        function openVerificationModal(pokemon) {
+            verifyPokemonIdInput.value = pokemon.id;
+            verifyPokemonNameEl.textContent = `Verify: ${pokemon.name}`;
+            verifyPokemonSpriteEl.src = pokemon.sprite;
+            verifyDiscordUserInput.value = discordUser.username;
+            verificationForm.reset(); // Clear previous entries
+            verificationModal.classList.remove('hidden');
+        }
+
+        function closeVerificationModal() {
+            verificationModal.classList.add('hidden');
+        }
+
+        async function handleVerificationSubmit(e) {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            const pokemonId = parseInt(verifyPokemonIdInput.value, 10);
+            const pokemon = pokemonData.find(p => p.id === pokemonId);
+
+            const requestData = {
+                userId: currentUser.uid,
+                discordUsername: discordUser.username,
+                discordId: discordUser.id,
+                pokemonId: pokemonId,
+                pokemonName: pokemon.name,
+                inGameName: e.target['verify-ingame-name'].value,
+                dateCaptured: e.target['verify-date'].value,
+                encounters: e.target['verify-encounters'].value || null,
+                status: 'pending',
+                submittedAt: serverTimestamp()
+            };
+
+            try {
+                await addDoc(collection(db, "verification-requests"), requestData);
+                userPendingData.add(pokemonId);
+                renderDexGrid(); // Re-render to show pending status
+                closeVerificationModal();
+            } catch (error) {
+                console.error("Error submitting verification:", error);
+                alert("Failed to submit verification. Please try again.");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit for Verification';
             }
         }
         
@@ -485,27 +745,35 @@
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 const page = link.dataset.page;
-                const pageTitle = link.dataset.tooltip;
-
-                if (page === 'members') {
+                
+                if (page === 'shiny-dex') {
+                    showShinyDex();
+                } else if (page === 'members') {
                     if (discordUser) {
                         showView('dashboard');
                     } else {
-                        // Prompt login if trying to access members page while logged out
                         handleLogin();
                     }
                 } else {
-                    pageTitleEl.textContent = pageTitle;
-                    // You can add custom content for each page here later
-                    pageContentEl.innerHTML = `<p>Content for the ${pageTitle} section is coming soon!</p>`;
+                    pageTitleEl.textContent = link.dataset.tooltip;
+                    pageContentEl.innerHTML = `<p>Content for the ${link.dataset.tooltip} section is coming soon!</p>`;
                     showView('page');
                 }
             });
         });
 
         backBtns.forEach(btn => {
-            btn.addEventListener('click', () => showView('landing'));
+            btn.addEventListener('click', () => {
+                // If closing dex, keep body scrollable for landing page
+                if (!appViews.shinyDex.classList.contains('hidden')) {
+                     document.body.style.overflow = 'hidden';
+                }
+                showView('landing');
+            });
         });
+
+        verificationForm.addEventListener('submit', handleVerificationSubmit);
+        cancelVerificationBtn.addEventListener('click', closeVerificationModal);
 
         // --- APP START ---
         showView('loading');
