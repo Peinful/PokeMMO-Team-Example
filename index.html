@@ -99,6 +99,34 @@
              <div id="auth-buttons"></div>
         </div>
     </div>
+    
+    <!-- ADDED BACK: Dashboard View -->
+    <div id="dashboard-view" class="hidden fullscreen-page p-4 md:p-8">
+        <header class="flex flex-col sm:flex-row justify-between items-center mb-8 pb-4 border-b border-gray-700">
+            <button class="back-btn text-gray-400 hover:text-white transition-colors mb-4 sm:mb-0"><i class="fa-solid fa-arrow-left mr-2"></i> Back to Home</button>
+            <div id="user-profile" class="flex items-center"></div>
+            <button id="logout-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Logout</button>
+        </header>
+        <main class="bg-gray-800 rounded-xl p-6 shadow-lg">
+            <h2 id="team-name" class="text-3xl font-bold mb-6 text-center"></h2>
+            <div id="team-members" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            <div id="join-team-container" class="text-center mt-8 hidden">
+                 <p class="text-gray-400 mb-4">You are not yet a member of the syndicate.</p>
+                 <button id="join-team-btn" class="discord-btn text-white font-bold py-3 px-6 rounded-lg text-lg">Join Crow Syndicate</button>
+            </div>
+        </main>
+    </div>
+    
+    <!-- ADDED BACK: Generic Page View -->
+    <div id="page-view" class="hidden fullscreen-page p-4 md:p-8">
+         <header class="flex justify-start items-center mb-8 pb-4 border-b border-gray-700">
+            <button class="back-btn text-gray-400 hover:text-white transition-colors"><i class="fa-solid fa-arrow-left mr-2"></i> Back to Home</button>
+         </header>
+         <main class="bg-gray-800 rounded-xl p-8 shadow-lg text-center">
+            <h2 id="page-title" class="text-4xl font-bold mb-6"></h2>
+            <div id="page-content" class="text-gray-300"><p>Content for this section is coming soon!</p></div>
+         </main>
+    </div>
 
     <!-- Fullscreen Pages -->
     <div id="shiny-dex-view" class="hidden fullscreen-page p-4 md:p-8">
@@ -202,8 +230,17 @@
         let userDexData = new Set(), userPendingData = new Set();
         let isDexLoaded = false, isHallLoaded = false, isStaffPanelLoaded = false, isMasterPanelLoaded = false;
         
-        // --- UI ELEMENTS ---
-        const appViews = { loading: document.getElementById('loading'), landing: document.getElementById('landing-view'), shinyDex: document.getElementById('shiny-dex-view'), shinyHall: document.getElementById('shiny-hall-view'), verificationPanel: document.getElementById('verification-panel-view'), siteMasterPanel: document.getElementById('sitemaster-panel-view') };
+        // --- UI ELEMENTS (RESTORED) ---
+        const appViews = { 
+            loading: document.getElementById('loading'), 
+            landing: document.getElementById('landing-view'), 
+            dashboard: document.getElementById('dashboard-view'),
+            page: document.getElementById('page-view'),
+            shinyDex: document.getElementById('shiny-dex-view'), 
+            shinyHall: document.getElementById('shiny-hall-view'), 
+            verificationPanel: document.getElementById('verification-panel-view'), 
+            siteMasterPanel: document.getElementById('sitemaster-panel-view') 
+        };
         const verificationPanelIcon = document.getElementById('verification-panel-icon'), sitemasterPanelIcon = document.getElementById('sitemaster-panel-icon');
         const authButtonsContainer = document.getElementById('auth-buttons'), backBtns = document.querySelectorAll('.back-btn');
         const iconLinks = document.querySelectorAll('.icon-item a');
@@ -214,6 +251,11 @@
         const cancelVerificationBtn = document.getElementById('cancel-verification-btn');
         const verifyPokemonIdInput = document.getElementById('verify-pokemon-id'), verifyPokemonNameEl = document.getElementById('verify-pokemon-name');
         const verifyPokemonSpriteEl = document.getElementById('verify-pokemon-sprite'), verifyDiscordUserInput = document.getElementById('verify-discord-user');
+        const pageTitleEl = document.getElementById('page-title'), pageContentEl = document.getElementById('page-content');
+        const logoutBtn = document.getElementById('logout-btn'), joinTeamBtn = document.getElementById('join-team-btn');
+        const userProfileEl = document.getElementById('user-profile'), teamNameEl = document.getElementById('team-name'), teamMembersEl = document.getElementById('team-members');
+        const joinTeamContainer = document.getElementById('join-team-container');
+
 
         let app, auth, db;
         try { app = initializeApp(firebaseConfig); auth = getAuth(app); db = getFirestore(app); } catch (e) { console.error("Firebase init failed.", e); }
@@ -256,7 +298,7 @@
                             showView('landing');
                             try {
                                 discordUser = await fetchDiscordUser(discordToken);
-                                await Promise.all([saveUserToFirestore(user.uid, discordUser), loadUserRankAndPermissions(discordUser.id)]);
+                                await Promise.all([saveUserToFirestore(user.uid, discordUser), loadUserRankAndPermissions()]);
                                 renderAuthButtons();
                                 loadUserDexData();
                                 loadPendingVerifications();
@@ -280,9 +322,9 @@
             return await r.json();
         }
         async function saveUserToFirestore(uid, dUser) { await setDoc(doc(db, 'users', uid), { discordId: dUser.id, username: dUser.username, avatar: dUser.avatar }, { merge: true }); }
-        async function loadUserRankAndPermissions(discordId) {
+        async function loadUserRankAndPermissions() {
             const masterSnap = await getDoc(doc(db, 'config', 'sitemaster'));
-            if (masterSnap.exists() && masterSnap.data().members.includes(discordId)) {
+            if (masterSnap.exists() && masterSnap.data().members.includes(discordUser.id)) {
                 isSiteMaster = true;
                 sitemasterPanelIcon.classList.remove('hidden');
             }
@@ -316,7 +358,16 @@
                 'sitemaster-panel': async () => { if (isSiteMaster) { if(!isMasterPanelLoaded) await loadSiteMasterPanel(); showView('sitemaster-panel-view'); } },
                 'members': () => { if (discordUser) showView('dashboard'); else handleLogin(); }
             };
-            if(handlers[page]) handlers[page]();
+            if(handlers[page]) {
+                handlers[page]();
+            } else {
+                const link = document.querySelector(`a[data-page="${page}"]`);
+                if(link) {
+                    pageTitleEl.textContent = link.dataset.tooltip;
+                    pageContentEl.innerHTML = `<p>Content for the ${link.dataset.tooltip} section is coming soon!</p>`;
+                    showView('page');
+                }
+            }
         }
 
         async function fetchPokemonData() { if (pokemonData.length > 0) return; try { const r = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${POKEMON_COUNT}`); const d = await r.json(); pokemonData = d.results.map((p, i) => ({ id: i + 1, name: p.name.charAt(0).toUpperCase() + p.name.slice(1), sprite: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${i + 1}.png` })); isDexLoaded = true;} catch (e) { console.error("Pokémon fetch failed:", e); }}
