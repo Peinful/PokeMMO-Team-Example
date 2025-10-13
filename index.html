@@ -163,14 +163,14 @@
                 <h2 class="text-2xl font-semibold mb-4">Ranks</h2>
                 <div id="ranks-list" class="space-y-4"></div>
                 <form id="rank-form" class="mt-8 bg-gray-800 p-4 rounded-lg"><h3 class="text-xl font-bold mb-4">Create/Edit Rank</h3>
-                    <input type="hidden" id="rank-id"><input type="text" id="rank-name" placeholder="Rank Name" class="w-full bg-gray-700 p-2 rounded-md mb-4" required>
+                    <input type="hidden" id="rank-id"><input type="text" id="rank-name" name="rank-name" placeholder="Rank Name" class="w-full bg-gray-700 p-2 rounded-md mb-4" required>
                     <div id="permissions-container" class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4"></div>
                     <button type="submit" class="discord-btn py-2 px-4 rounded-lg">Save Rank</button>
                     <button type="button" id="clear-rank-form" class="bg-gray-600 py-2 px-4 rounded-lg ml-2">Clear</button>
                 </form>
             </div>
             <div id="users-tab" class="tab-content hidden"><h2 class="text-2xl font-semibold mb-4">Assign Ranks</h2>
-                <div class="flex gap-4"><input type="text" id="user-search" placeholder="Search by Discord Username" class="flex-grow bg-gray-700 p-2 rounded-md"></div>
+                <div class="flex gap-4"><input type="text" id="user-search" name="user-search" placeholder="Search by Discord Username" class="flex-grow bg-gray-700 p-2 rounded-md"></div>
                 <div id="user-list" class="mt-4 space-y-2"></div>
             </div>
         </main>
@@ -187,24 +187,24 @@
                 <input type="hidden" id="verify-pokemon-id">
                 <div class="mb-4">
                     <label for="verify-discord-user" class="block text-sm font-medium text-gray-300 mb-1">Discord Username</label>
-                    <input type="text" id="verify-discord-user" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" readonly>
+                    <input type="text" id="verify-discord-user" name="verify-discord-user" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" readonly>
                 </div>
                 <div class="mb-4">
                     <label for="verify-ingame-name" class="block text-sm font-medium text-gray-300 mb-1">In-game Name</label>
-                    <input type="text" id="verify-ingame-name" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" required>
+                    <input type="text" id="verify-ingame-name" name="verify-ingame-name" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" required>
                 </div>
                  <div class="mb-4">
                     <label for="verify-character-image" class="block text-sm font-medium text-gray-300 mb-1">Character Image Filename</label>
-                    <input type="text" id="verify-character-image" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" placeholder="e.g., your-name.png" required>
+                    <input type="text" id="verify-character-image" name="verify-character-image" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" placeholder="e.g., your-name.png" required>
                     <p class="text-xs text-gray-500 mt-1">Upload image to 'images/characters' in the repo and enter the filename.</p>
                 </div>
                 <div class="mb-4">
                     <label for="verify-date" class="block text-sm font-medium text-gray-300 mb-1">Date Captured</label>
-                    <input type="date" id="verify-date" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" required>
+                    <input type="date" id="verify-date" name="verify-date" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" required>
                 </div>
                 <div class="mb-4">
                     <label for="verify-encounters" class="block text-sm font-medium text-gray-300 mb-1">Encounters (Optional)</label>
-                    <input type="number" id="verify-encounters" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" min="0">
+                    <input type="number" id="verify-encounters" name="verify-encounters" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" min="0">
                 </div>
                 <div class="flex justify-end gap-4 mt-8">
                     <button type="button" id="cancel-verification-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
@@ -300,6 +300,7 @@
                                 discordUser = await fetchDiscordUser(discordToken);
                                 await Promise.all([saveUserToFirestore(user.uid, discordUser), loadUserRankAndPermissions()]);
                                 renderAuthButtons();
+                                loadTeamData();
                                 loadUserDexData();
                                 loadPendingVerifications();
                             } catch (error) { console.error("Login flow error:", error); clearSession(true); }
@@ -341,6 +342,13 @@
                     }
                 }
             }
+        }
+        
+        async function loadTeamData() {
+            const teamRef = doc(db, 'teams', 'crow-syndicate'); // Hardcoded for now
+            const teamSnap = await getDoc(teamRef);
+            if (!teamSnap.exists()) return console.error("Team doc not found!");
+            renderTeamInfo(teamSnap.data());
         }
 
         function clearSession(isError = false) {
@@ -405,7 +413,7 @@
             const snapshot = await getDocs(q);
             if (snapshot.empty) { document.getElementById('shiny-hall-grid').innerHTML = `<p class="col-span-full text-center text-gray-400">Hall of Fame is empty.</p>`; return; }
             document.getElementById('shiny-hall-grid').innerHTML = snapshot.docs.map(d => { const e = d.data();
-                return `<div class="hall-entry"><img src="${pokemonData[e.pokemonId-1].sprite}" class="pokemon-sprite"><img src="images/characters/${e.characterImage}" class="character-image" onerror="this.src='https://placehold.co/80x80/374151/9ca3af?text=N/A'"><h3 class="text-xl font-bold mt-2">${e.pokemonName}</h3><p class="text-sm font-semibold text-gray-300">${e.inGameName}</p><p class="text-xs text-gray-500">by ${e.discordUsername}</p><div class="bg-gray-700/50 rounded-md p-3 w-full mt-4 text-xs text-gray-300 space-y-1"><p><strong>Date:</strong> ${e.dateCaptured}</p>${e.encounters ? `<strong>Encounters:</strong> ${e.encounters}` : ''}</div></div>`;
+                return `<div class="hall-entry"><img src="${pokemonData.find(p => p.id === e.pokemonId)?.sprite}" class="pokemon-sprite"><img src="images/characters/${e.characterImage}" class="character-image" onerror="this.src='https://placehold.co/80x80/374151/9ca3af?text=N/A'"><h3 class="text-xl font-bold mt-2">${e.pokemonName}</h3><p class="text-sm font-semibold text-gray-300">${e.inGameName}</p><p class="text-xs text-gray-500">by ${e.discordUsername}</p><div class="bg-gray-700/50 rounded-md p-3 w-full mt-4 text-xs text-gray-300 space-y-1"><p><strong>Date:</strong> ${e.dateCaptured}</p>${e.encounters ? `<strong>Encounters:</strong> ${e.encounters}` : ''}</div></div>`;
             }).join('');
         }
         async function loadAndRenderVerificationQueue() {
@@ -413,7 +421,7 @@
             const snapshot = await getDocs(q);
             if (snapshot.empty) { verificationQueueEl.innerHTML = `<p class="text-center text-gray-400">No pending verifications.</p>`; return; }
             verificationQueueEl.innerHTML = snapshot.docs.map(d => { const e = d.data();
-                return `<div class="verification-card grid grid-cols-1 md:grid-cols-3 gap-4 items-center" id="req-${d.id}"><div class="flex items-center gap-4"><img src="${pokemonData[e.pokemonId-1].sprite}" class="w-16 h-16 bg-gray-700 rounded-md"><div class="text-sm"><p class="font-bold text-lg">${e.pokemonName}</p><p class="text-gray-400">${e.inGameName}</p><p class="text-gray-500">${e.discordUsername}</p></div></div><div class="text-sm text-gray-300"><p><strong>Date:</strong> ${e.dateCaptured}</p><p><strong>Encounters:</strong> ${e.encounters || 'N/A'}</p><p><strong>Character:</strong> ${e.characterImage}</p></div><div class="flex gap-2 justify-end"><button data-id="${d.id}" data-action="approve" class="action-btn bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Approve</button><button data-id="${d.id}" data-action="deny" class="action-btn bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">Deny</button></div></div>`;
+                return `<div class="verification-card grid grid-cols-1 md:grid-cols-3 gap-4 items-center" id="req-${d.id}"><div class="flex items-center gap-4"><img src="${pokemonData.find(p => p.id === e.pokemonId)?.sprite}" class="w-16 h-16 bg-gray-700 rounded-md"><div class="text-sm"><p class="font-bold text-lg">${e.pokemonName}</p><p class="text-gray-400">${e.inGameName}</p><p class="text-gray-500">${e.discordUsername}</p></div></div><div class="text-sm text-gray-300"><p><strong>Date:</strong> ${e.dateCaptured}</p><p><strong>Encounters:</strong> ${e.encounters || 'N/A'}</p><p><strong>Character:</strong> ${e.characterImage}</p></div><div class="flex gap-2 justify-end"><button data-id="${d.id}" data-action="approve" class="action-btn bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Approve</button><button data-id="${d.id}" data-action="deny" class="action-btn bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">Deny</button></div></div>`;
             }).join('');
             document.querySelectorAll('.action-btn').forEach(b => b.addEventListener('click', handleVerificationAction));
         }
@@ -482,7 +490,7 @@
             const filteredUsers = allUsers.filter(u => u.username.toLowerCase().includes(filter.toLowerCase()));
             userListEl.innerHTML = filteredUsers.map(u => {
                 const currentRank = allRanks.find(r => r.id === u.rankId);
-                return `<div class="bg-gray-700 p-3 rounded-md flex justify-between items-center"><span>${u.username}</span><div><span class="text-gray-400">${currentRank ? currentRank.name : 'No Rank'}</span><select class="assign-rank-select bg-gray-600 ml-2 rounded p-1" data-userid="${u.id}"><option value="">Assign Rank</option>${allRanks.map(r => `<option value="${r.id}" ${u.rankId === r.id ? 'selected' : ''}>${r.name}</option>`).join('')}</select></div></div>`
+                return `<div class="bg-gray-700 p-3 rounded-md flex justify-between items-center"><span>${u.username}</span><div><span class="text-gray-400">${currentRank ? currentRank.name : 'No Rank'}</span><select id="rank-select-${u.id}" name="user-rank-assignment" class="assign-rank-select bg-gray-600 ml-2 rounded p-1" data-userid="${u.id}"><option value="">Assign Rank</option>${allRanks.map(r => `<option value="${r.id}" ${u.rankId === r.id ? 'selected' : ''}>${r.name}</option>`).join('')}</select></div></div>`
             }).join('');
             userListEl.querySelectorAll('.assign-rank-select').forEach(s => s.addEventListener('change', async (e) => {
                 const userDocRef = doc(db, 'users', e.target.dataset.userid);
