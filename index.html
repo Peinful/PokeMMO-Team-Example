@@ -117,15 +117,20 @@
             position: absolute;
             width: 200px;
             height: 176px;
-            animation: fly-across linear infinite;
+            left: 100vw; /* Start the element just off the right side of the viewport */
+            animation-name: fly-across;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
         }
 
         @keyframes fly-across {
             from {
-                transform: translateX(100vw);
+                /* Start at its initial position (defined in the class) */
+                transform: translateX(0);
             }
             to {
-                transform: translateX(-200px); /* Width of the gif */
+                /* Move it left by the width of the screen PLUS its own width to go fully off-screen */
+                transform: translateX(calc(-100vw - 200px)); 
             }
         }
 
