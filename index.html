@@ -117,20 +117,32 @@
             position: absolute;
             width: 200px;
             height: 176px;
-            left: 0; 
-            transform: translateX(100vw);
+            /* Let the animation fully control position and opacity */
             animation-name: fly-across;
             animation-timing-function: linear;
             animation-iteration-count: infinite;
-            animation-fill-mode: backwards; /* This is the fix! */
+            animation-fill-mode: backwards; /* Ensures start state is applied during delay */
+            opacity: 0; /* Start invisible by default */
         }
 
         @keyframes fly-across {
-            from {
+            /* At 0%, the crow is off-screen to the right and fully transparent */
+            0% {
                 transform: translateX(100vw);
+                opacity: 0;
             }
-            to {
-                transform: translateX(-200px); 
+            /* A few moments in, it starts appearing as it enters the screen */
+            5% {
+                opacity: 1;
+            }
+            /* For most of the animation, it's fully visible */
+            95% {
+                opacity: 1;
+            }
+            /* At 100%, it's off-screen to the left and fully transparent */
+            100% {
+                transform: translateX(-200px);
+                opacity: 0;
             }
         }
 
