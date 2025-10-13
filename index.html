@@ -196,10 +196,13 @@
         const POKEMON_COUNT = 649;
         const ALL_PERMISSIONS = ['can_verify_shinies', 'can_manage_recruitment', 'can_edit_pages', 'can_manage_bounties'];
 
+        // --- STATE ---
         let currentUser = null, discordUser = null, isSiteMaster = false, userPermissions = new Set();
         let pokemonData = [], allRanks = [], allUsers = [];
+        let userDexData = new Set(), userPendingData = new Set();
         let isDexLoaded = false, isHallLoaded = false, isStaffPanelLoaded = false, isMasterPanelLoaded = false;
         
+        // --- UI ELEMENTS ---
         const appViews = { loading: document.getElementById('loading'), landing: document.getElementById('landing-view'), shinyDex: document.getElementById('shiny-dex-view'), shinyHall: document.getElementById('shiny-hall-view'), verificationPanel: document.getElementById('verification-panel-view'), siteMasterPanel: document.getElementById('sitemaster-panel-view') };
         const verificationPanelIcon = document.getElementById('verification-panel-icon'), sitemasterPanelIcon = document.getElementById('sitemaster-panel-icon');
         const authButtonsContainer = document.getElementById('auth-buttons'), backBtns = document.querySelectorAll('.back-btn');
@@ -283,21 +286,16 @@
                 isSiteMaster = true;
                 sitemasterPanelIcon.classList.remove('hidden');
             }
-            
-            // This is the corrected, more direct way to get the user document
             if (!currentUser) return;
             const userDocRef = doc(db, 'users', currentUser.uid);
             const userSnap = await getDoc(userDocRef);
-
             if (userSnap.exists()) {
                 const userData = userSnap.data();
                 if (userData.rankId) {
                     const rankSnap = await getDoc(doc(db, 'ranks', userData.rankId));
                     if (rankSnap.exists()) {
                         userPermissions = new Set(rankSnap.data().permissions || []);
-                        if (userPermissions.has('can_verify_shinies')) {
-                            verificationPanelIcon.classList.remove('hidden');
-                        }
+                        if (userPermissions.has('can_verify_shinies')) verificationPanelIcon.classList.remove('hidden');
                     }
                 }
             }
