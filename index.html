@@ -565,7 +565,7 @@
                 pokemonData = data.results.map((p, index) => ({
                     id: index + 1,
                     name: p.name.charAt(0).toUpperCase() + p.name.slice(1),
-                    sprite: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${index + 1}.png`
+                    sprite: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${index + 1}.png`
                 }));
             } catch (error) {
                 console.error("Failed to fetch Pokémon data:", error);
@@ -782,4 +782,5 @@
     </script>
 </body>
 </html>
+
 
