@@ -42,37 +42,31 @@
 			width: 100%;
 			height: 100%;
 			transform: rotate(calc(360deg / 7 * var(--i)));
-			display: flex; /* Helps center the wrapper */
-			justify-content: center;
-			align-items: flex-start; /* Aligns items to the top of the container */
 			pointer-events: none;
 		}
 
-		/* This new wrapper holds the icon and positions the tooltip */
-		.tooltip-wrapper {
-			position: relative;
-			pointer-events: auto; /* Allows hovering on the wrapper */
-		}
-
 		.icon-item a {
-			position: relative;
-			display: flex;
-			justify-content: center;
-			align-items: center;
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -50%) rotate(0deg) translateY(-175px);
+			
 			width: 60px;
 			height: 60px;
 			background: #2b3748;
 			border-radius: 50%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
 			color: #9ca3af;
 			font-size: 1.5rem;
 			border: 2px solid #4b5563;
 			cursor: pointer;
 			transition: all 0.3s ease;
-			transform: translateY(145px); /* Pushes the icon to the edge of the circle */
+			pointer-events: auto;
 		}
 
 		.icon-item a .fa-solid {
-			/* Counter-rotates the icon to keep it upright */
 			transform: rotate(calc(-360deg / 7 * var(--i)));
 			transition: transform 0.3s ease;
 		}
@@ -88,15 +82,17 @@
 			transform: rotate(calc(-360deg / 7 * var(--i))) scale(1.2);
 		}
 
-		/* --- New, Simpler Tooltip Styles --- */
-		.tooltip-wrapper::after {
+		/* --- Corrected Tooltip Styles --- */
+
+		.icon-item a::after {
 			content: attr(data-tooltip);
 			position: absolute;
-			bottom: 100%; /* Position above the wrapper */
+			top: -45px;      /* Positions tooltip above the icon circle */
 			left: 50%;
-			transform: translateX(-50%); /* Center horizontally */
-			margin-bottom: 10px; /* Add a small gap */
 			
+			/* This transform centers the tooltip AND counter-rotates it to stay level */
+			transform: translateX(-50%) rotate(calc(-360deg / 7 * var(--i)));
+
 			background-color: #1f2937;
 			color: #e5e7eb;
 			padding: 0.5rem 0.75rem;
@@ -104,14 +100,14 @@
 			font-size: 0.875rem;
 			font-weight: 500;
 			white-space: nowrap;
-			z-index: 100;
-			
+			pointer-events: none;
 			opacity: 0;
+			transition: opacity 0.2s ease;
 			visibility: hidden;
-			transition: opacity 0.2s ease, visibility 0.2s ease;
+			z-index: 100;
 		}
 
-		.tooltip-wrapper:hover::after {
+		.icon-item a:hover::after {
 			opacity: 1;
 			visibility: visible;
 		}
