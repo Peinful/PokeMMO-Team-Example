@@ -293,15 +293,15 @@
         let isDexLoaded = false, isHallLoaded = false, isMasterPanelLoaded = false;
         
         // --- UI ELEMENTS ---
-        const appViews = { 
-            loading: document.getElementById('loading'), 
-            landing: document.getElementById('landing-view'), 
-            dashboard: document.getElementById('dashboard-view'),
-            page: document.getElementById('page-view'),
-            shinyDex: document.getElementById('shiny-dex-view'), 
-            shinyHall: document.getElementById('shiny-hall-view'), 
-            staffPanel: document.getElementById('staff-panel-view')
-        };
+		const appViews = {
+			loading: document.getElementById('loading'),
+			landing: document.getElementById('landing-view'),
+			dashboard: document.getElementById('dashboard-view'),
+			page: document.getElementById('page-view'),
+			shinyDex: document.getElementById('shiny-dex-view'), // This is the line that was likely missing
+			shinyHall: document.getElementById('shiny-hall-view'),
+			staffPanel: document.getElementById('staff-panel-view')
+		};
         const authButtonsContainer = document.getElementById('auth-buttons'), backBtns = document.querySelectorAll('.back-btn');
         const iconLinks = document.querySelectorAll('.icon-item a');
         const dexGridEl = document.getElementById('dex-grid');
