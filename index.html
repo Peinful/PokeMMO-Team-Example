@@ -188,46 +188,43 @@
 		<main id="shiny-hall-grid" class="content-grid shiny-hall-grid"></main>
 	</div>
 
-    <div id="staff-panel-view" class="hidden fullscreen-page p-4 md:p-8">
-        <header class="flex justify-between items-center mb-8 pb-4 border-b border-gray-700">
-            <button class="back-btn text-gray-400 hover:text-white transition-colors"><i class="fa-solid fa-arrow-left mr-2"></i> Back</button>
-            <h1 class="text-3xl font-bold text-center">Staff Panel</h1><div class="w-24"></div>
-        </header>
-        <main>
-            <div class="flex border-b border-gray-700 mb-6"><div class="tabs">
-                <button id="verifications-tab-btn" class="tab-btn py-2 px-4 rounded-t-lg hidden" data-tab="verifications">Verifications</button>
-                <button id="ranks-tab-btn" class="tab-btn py-2 px-4 rounded-t-lg hidden" data-tab="ranks">Manage Ranks</button>
-                <button id="users-tab-btn" class="tab-btn py-2 px-4 rounded-t-lg hidden" data-tab="users">Manage Users</button>
-            </div></div>
-            <div id="verifications-tab" class="tab-content hidden">
-                <h2 class="text-2xl font-semibold mb-4">Pending Shiny Verifications</h2>
-                <div id="verification-queue" class="space-y-4"></div>
-            </div>
-            <div id="ranks-tab" class="tab-content hidden">
-                <h2 class="text-2xl font-semibold mb-4">Ranks</h2>
-                <div id="ranks-list" class="space-y-4"></div>
-                <form id="rank-form" class="mt-8 bg-gray-800 p-4 rounded-lg"><h3 class="text-xl font-bold mb-4">Create/Edit Rank</h3>
-                    <input type="hidden" id="rank-id">
-                    <input type="text" id="rank-name" name="rank-name" placeholder="Rank Name" class="w-full bg-gray-700 p-2 rounded-md mb-4" required>
-                    <div id="permissions-container" class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4"></div>
-                    <button type="submit" class="discord-btn py-2 px-4 rounded-lg">Save Rank</button>
-                    <button type="button" id="clear-rank-form" class="bg-gray-600 py-2 px-4 rounded-lg ml-2">Clear</button>
-                </form>
-            </div>
-            <div id="users-tab" class="tab-content hidden"><h2 class="text-2xl font-semibold mb-4">Assign Ranks</h2>
-                <div class="flex gap-4"><input type="text" id="user-search" name="user-search" placeholder="Search by Discord Username" class="flex-grow bg-gray-700 p-2 rounded-md"></div>
-                <div id="user-list" class="mt-4 space-y-2"></div>
-            </div>
+	<div id="staff-panel-view" class="hidden fullscreen-page p-4 md:p-8">
+		<header class="flex justify-between items-center mb-8 pb-4 border-b border-gray-700">
+			<button class="back-btn text-gray-400 hover:text-white transition-colors"><i class="fa-solid fa-arrow-left mr-2"></i> Back</button>
+			<h1 class="text-3xl font-bold text-center">Staff Panel</h1><div class="w-24"></div>
+		</header>
+		<main>
 			<div class="flex border-b border-gray-700 mb-6">
 				<div class="tabs">
+					<button id="verifications-tab-btn" class="tab-btn py-2 px-4 rounded-t-lg hidden" data-tab="verifications">Verifications</button>
+					<button id="ranks-tab-btn" class="tab-btn py-2 px-4 rounded-t-lg hidden" data-tab="ranks">Manage Ranks</button>
+					<button id="users-tab-btn" class="tab-btn py-2 px-4 rounded-t-lg hidden" data-tab="users">Manage Users</button>
 					<button id="bounties-tab-btn" class="tab-btn py-2 px-4 rounded-t-lg hidden" data-tab="bounties">Bounties</button>
 				</div>
 			</div>
 
+			<div id="verifications-tab" class="tab-content hidden">
+				<h2 class="text-2xl font-semibold mb-4">Pending Shiny Verifications</h2>
+				<div id="verification-queue" class="space-y-4"></div>
+			</div>
+			<div id="ranks-tab" class="tab-content hidden">
+				<h2 class="text-2xl font-semibold mb-4">Ranks</h2>
+				<div id="ranks-list" class="space-y-4"></div>
+				<form id="rank-form" class="mt-8 bg-gray-800 p-4 rounded-lg"><h3 class="text-xl font-bold mb-4">Create/Edit Rank</h3>
+					<input type="hidden" id="rank-id">
+					<input type="text" id="rank-name" name="rank-name" placeholder="Rank Name" class="w-full bg-gray-700 p-2 rounded-md mb-4" required>
+					<div id="permissions-container" class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4"></div>
+					<button type="submit" class="discord-btn py-2 px-4 rounded-lg">Save Rank</button>
+					<button type="button" id="clear-rank-form" class="bg-gray-600 py-2 px-4 rounded-lg ml-2">Clear</button>
+				</form>
+			</div>
+			<div id="users-tab" class="tab-content hidden"><h2 class="text-2xl font-semibold mb-4">Assign Ranks</h2>
+				<div class="flex gap-4"><input type="text" id="user-search" name="user-search" placeholder="Search by Discord Username" class="flex-grow bg-gray-700 p-2 rounded-md"></div>
+				<div id="user-list" class="mt-4 space-y-2"></div>
+			</div>
 			<div id="bounties-tab" class="tab-content hidden">
 				<h2 class="text-2xl font-semibold mb-4">Manage Bounties</h2>
 				<div id="bounties-list" class="space-y-4"></div>
-
 				<form id="bounty-form" class="mt-8 bg-gray-800 p-4 rounded-lg space-y-4">
 					<h3 class="text-xl font-bold">Create/Edit Bounty</h3>
 					<input type="hidden" id="bounty-id">
@@ -263,8 +260,8 @@
 					</div>
 				</form>
 			</div>
-        </main>
-    </div>
+		</main>
+	</div>
     
     <div id="verification-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-[60]">
         <div class="bg-gray-800 rounded-lg p-8 w-full max-w-md shadow-2xl">
