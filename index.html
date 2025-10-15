@@ -37,7 +37,7 @@
 		.icon-item {
 			position: absolute; top: 0; left: 0; width: 100%; height: 100%;
 			/* Change 10 to 9 here */
-			transform: rotate(calc(360deg / 9 * var(--i))); 
+			transform: rotate(calc(360deg / 7 * var(--i))); 
 			pointer-events: none;
 		}
         .icon-item a {
@@ -48,9 +48,9 @@
             color: #9ca3af; font-size: 1.5rem; border: 2px solid #4b5563;
             cursor: pointer; transition: all 0.3s ease; pointer-events: auto;
         }
-        .icon-item a .fa-solid { transform: rotate(calc(-360deg / 9 * var(--i))); transition: transform 0.3s ease; }
+        .icon-item a .fa-solid { transform: rotate(calc(-360deg / 7 * var(--i))); transition: transform 0.3s ease; }
         .icon-item a:hover { background-color: #5865F2; color: #fff; border-color: #5865F2; box-shadow: 0 0 15px #5865F2; }
-        .icon-item a:hover .fa-solid { transform: rotate(calc(-360deg / 9 * var(--i))) scale(1.2); }
+        .icon-item a:hover .fa-solid { transform: rotate(calc(-360deg / 7 * var(--i))) scale(1.2); }
         
         #flying-crows-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; overflow: hidden; z-index: 1; }
         .flying-crow {
@@ -101,7 +101,6 @@
                 <div class="icon-item" style="--i: 5;"><a data-page="tournaments" data-tooltip="Tournaments"><i class="fa-solid fa-trophy"></i></a></div>
                 <div class="icon-item" style="--i: 6;"><a data-page="bounties" data-tooltip="Bounties"><i class="fa-solid fa-crosshairs"></i></a></div>
                 <div class="icon-item" style="--i: 7;"><a data-page="gallery" data-tooltip="Gallery"><i class="fa-solid fa-images"></i></a></div>
-                <div id="verification-panel-icon" class="icon-item hidden" style="--i: 8;"><a data-page="verification-panel" data-tooltip="Verifications"><i class="fa-solid fa-shield-halved"></i></a></div>
              </div>
              <h1 class="text-6xl font-bold text-white drop-shadow-lg" style="text-shadow: 2px 2px 4px #000;">Crow Syndicate</h1>
              <p class="text-gray-200 mb-8 max-w-md bg-black bg-opacity-50 p-2 rounded-md">A PokeMMO team focused on competitive play, community, and strategy.</p>
@@ -156,31 +155,29 @@
         </header>
         <main><h2 class="text-2xl font-semibold mb-4">Pending Shiny Verifications</h2><div id="verification-queue" class="space-y-4"></div></main>
     </div>
-    <div id="sitemaster-panel-view" class="hidden fullscreen-page p-4 md:p-8">
+    <div id="staff-panel-view" class="hidden fullscreen-page p-4 md:p-8">
         <header class="flex justify-between items-center mb-8 pb-4 border-b border-gray-700">
             <button class="back-btn text-gray-400 hover:text-white transition-colors"><i class="fa-solid fa-arrow-left mr-2"></i> Back</button>
-            <h1 class="text-3xl font-bold text-center">Site Master Panel</h1><div class="w-24"></div>
+            <h1 class="text-3xl font-bold text-center">Staff Panel</h1><div class="w-24"></div>
         </header>
-        <main>
-            <div class="flex border-b border-gray-700 mb-6"><div class="tabs">
-                <button class="tab-btn py-2 px-4 rounded-t-lg active" data-tab="ranks">Manage Ranks</button>
-                <button class="tab-btn py-2 px-4 rounded-t-lg" data-tab="users">Manage Users</button>
-            </div></div>
-            <div id="ranks-tab" class="tab-content">
-                <h2 class="text-2xl font-semibold mb-4">Ranks</h2>
-                <div id="ranks-list" class="space-y-4"></div>
-                <form id="rank-form" class="mt-8 bg-gray-800 p-4 rounded-lg"><h3 class="text-xl font-bold mb-4">Create/Edit Rank</h3>
-                    <input type="hidden" id="rank-id"><input type="text" id="rank-name" name="rank-name" placeholder="Rank Name" class="w-full bg-gray-700 p-2 rounded-md mb-4" required>
-                    <div id="permissions-container" class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4"></div>
-                    <button type="submit" class="discord-btn py-2 px-4 rounded-lg">Save Rank</button>
-                    <button type="button" id="clear-rank-form" class="bg-gray-600 py-2 px-4 rounded-lg ml-2">Clear</button>
-                </form>
-            </div>
-            <div id="users-tab" class="tab-content hidden"><h2 class="text-2xl font-semibold mb-4">Assign Ranks</h2>
-                <div class="flex gap-4"><input type="text" id="user-search" name="user-search" placeholder="Search by Discord Username" class="flex-grow bg-gray-700 p-2 rounded-md"></div>
-                <div id="user-list" class="mt-4 space-y-2"></div>
-            </div>
-        </main>
+		<main>
+			<div class="flex border-b border-gray-700 mb-6">
+				<div class="tabs">
+					<button id="verifications-tab-btn" class="tab-btn py-2 px-4 rounded-t-lg hidden" data-tab="verifications">Verifications</button>
+
+					<button id="ranks-tab-btn" class="tab-btn py-2 px-4 rounded-t-lg hidden" data-tab="ranks">Manage Ranks</button>
+					<button id="users-tab-btn" class="tab-btn py-2 px-4 rounded-t-lg hidden" data-tab="users">Manage Users</button>
+				</div>
+			</div>
+
+			<div id="verifications-tab" class="tab-content hidden">
+				<h2 class="text-2xl font-semibold mb-4">Pending Shiny Verifications</h2>
+				<div id="verification-queue" class="space-y-4"></div>
+			</div>
+
+			<div id="ranks-tab" class="tab-content hidden">...</div>
+			<div id="users-tab" class="tab-content hidden">...</div>
+		</main>
     </div>
     
     <div id="verification-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-[60]">
@@ -248,7 +245,7 @@
 			shinyDex: document.getElementById('shiny-dex-view'), 
 			shinyHall: document.getElementById('shiny-hall-view'), 
 			verificationPanel: document.getElementById('verification-panel-view'), 
-			siteMasterPanel: document.getElementById('sitemaster-panel-view') 
+			staffPanel: document.getElementById('staff-panel-view') 
 		};
 		const authButtonsContainer = document.getElementById('auth-buttons'), backBtns = document.querySelectorAll('.back-btn');
 		const iconLinks = document.querySelectorAll('.icon-item a');
@@ -335,18 +332,24 @@
 		async function loadUserRankAndPermissions() {
 			if (!discordUser) return;
 			const masterSnap = await getDoc(doc(db, 'config', 'sitemaster'));
+
+			// Check for Site Master status first
 			if (masterSnap.exists() && masterSnap.data().members.includes(discordUser.id)) {
 				isSiteMaster = true;
+				// UPDATED: If user is a Site Master, give them all permissions automatically.
+				userPermissions = new Set(ALL_PERMISSIONS);
 			}
 
+			// Then, check for rank permissions (for non-Site Masters)
 			const userSnap = await getDoc(doc(db, 'users', currentUser.uid));
-			if (userSnap.exists() && userSnap.data().rankId) {
+			if (!isSiteMaster && userSnap.exists() && userSnap.data().rankId) {
 				const rankSnap = await getDoc(doc(db, 'ranks', userSnap.data().rankId));
 				if (rankSnap.exists()) {
 					userPermissions = new Set(rankSnap.data().permissions || []);
 				}
 			}
-			updateUIVisibility(); // UPDATED: Central function to control UI based on roles.
+			
+			updateUIVisibility(); // Update the UI with the correct permissions
 		}
 
 		// UPDATED: Corrected function to no longer reference the deleted icon.
@@ -397,16 +400,12 @@
 			const handlers = {
 				'shiny-dex': async () => { if (!isDexLoaded) await fetchPokemonData(); renderDexGrid(); showView('shinyDex'); },
 				'shiny-hall': async () => { if (!isHallLoaded) await fetchPokemonData(); await loadAndRenderShinyHall(); showView('shinyHall'); },
-				'verification-panel': async () => {
-					if (!userPermissions.has('can_verify_shinies') && !isSiteMaster) return; // Permission check
-					if(!isStaffPanelLoaded) await fetchPokemonData(); 
-					await loadAndRenderVerificationQueue(); 
-					showView('verificationPanel'); 
-				},
-				'sitemaster-panel': async () => {
-					if (!isSiteMaster) return; // Permission check
-					if(!isMasterPanelLoaded) await loadSiteMasterPanel(); 
-					showView('siteMasterPanel');
+				// NEW UNIFIED STAFF PANEL HANDLER
+				'staff-panel': async () => {
+					const canAccess = isSiteMaster || ALL_PERMISSIONS.some(p => userPermissions.has(p));
+					if (!canAccess) return;
+					await renderStaffPanel();
+					showView('staffPanel');
 				},
 				'members': () => {
 					if (discordUser) { 
@@ -431,6 +430,67 @@
 					pageContentEl.innerHTML = `<p>Content for the ${link.dataset.tooltip} section is coming soon!</p>`;
 					showView('page');
 				}
+			}
+		}
+		
+		// ADD THIS NEW FUNCTION to render the staff panel dynamically
+		async function renderStaffPanel() {
+			// --- Tab Visibility Logic ---
+			const tabs = {
+				verifications: document.getElementById('verifications-tab-btn'),
+				ranks: document.getElementById('ranks-tab-btn'),
+				users: document.getElementById('users-tab-btn'),
+			};
+			const tabContents = {
+				verifications: document.getElementById('verifications-tab'),
+				ranks: document.getElementById('ranks-tab'),
+				users: document.getElementById('users-tab'),
+			}
+
+			// Hide everything first
+			Object.values(tabs).forEach(t => t.classList.add('hidden'));
+			Object.values(tabContents).forEach(tc => tc.classList.add('hidden'));
+
+			let firstVisibleTab = null;
+
+			if (userPermissions.has('can_verify_shinies') || isSiteMaster) {
+				tabs.verifications.classList.remove('hidden');
+				if (!firstVisibleTab) firstVisibleTab = 'verifications';
+				await fetchPokemonData();
+				await loadAndRenderVerificationQueue();
+			}
+			if (isSiteMaster) {
+				tabs.ranks.classList.remove('hidden');
+				tabs.users.classList.remove('hidden');
+				if (!firstVisibleTab) firstVisibleTab = 'ranks';
+				if (!isMasterPanelLoaded) {
+					const permsContainer = document.getElementById('permissions-container');
+					permsContainer.innerHTML = ALL_PERMISSIONS.map(p => `<div><input type="checkbox" id="perm-${p}" name="permissions" value="${p}" class="mr-2"><label for="perm-${p}">${p.replace(/_/g, ' ')}</label></div>`).join('');
+					loadAllRanks();
+					loadAllUsers();
+					isMasterPanelLoaded = true;
+				}
+			}
+
+			// --- Activate the first visible tab ---
+			if (firstVisibleTab) {
+				Object.values(tabs).forEach(t => t.classList.remove('active'));
+				tabs[firstVisibleTab].classList.add('active');
+				tabContents[firstVisibleTab].classList.remove('hidden');
+			}
+
+			// --- Tab click listeners (run only once) ---
+			if (!document.getElementById('staff-panel-view').dataset.listenersAttached) {
+				Object.values(tabs).forEach(button => {
+					button.addEventListener('click', (e) => {
+						const tabId = e.target.dataset.tab;
+						Object.values(tabs).forEach(t => t.classList.remove('active'));
+						e.target.classList.add('active');
+						Object.values(tabContents).forEach(tc => tc.classList.add('hidden'));
+						tabContents[tabId].classList.remove('hidden');
+					});
+				});
+				document.getElementById('staff-panel-view').dataset.listenersAttached = 'true';
 			}
 		}
 
@@ -602,30 +662,31 @@
 		function renderAuthButtons() {
 			if (discordUser) {
 				const avatarUrl = discordUser.avatar ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png` : 'https://cdn.discordapp.com/embed/avatars/0.png';
-				
-				const logoutButton = `<button id="user-logout-btn" class="ml-4 p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all hover:shadow-lg" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></button>`;
 
-				const siteMasterButton = isSiteMaster 
-					? `<button id="sitemaster-btn" class="ml-2 p-2 discord-btn text-white rounded-lg transition-all hover:shadow-lg" title="Site Master Panel"><i class="fa-solid fa-pencil"></i></button>`
+				// Check if the user has ANY staff permissions or is a Site Master
+				const canAccessStaffPanel = isSiteMaster || ALL_PERMISSIONS.some(p => userPermissions.has(p));
+
+				const staffButton = canAccessStaffPanel
+					? `<button id="staff-panel-btn" class="ml-2 p-2 discord-btn text-white rounded-lg transition-all hover:shadow-lg" title="Staff Panel"><i class="fa-solid fa-user-shield"></i></button>`
 					: '';
 
-				// UPDATED: Added the new 'discord-username' class to this span
+				const logoutButton = `<button id="user-logout-btn" class="ml-4 p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all hover:shadow-lg" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></button>`;
+
 				authButtonsContainer.innerHTML = `
 					<div class="flex items-center justify-center">
 						<img src="${avatarUrl}" class="w-10 h-10 rounded-full mr-4">
 						<span class="text-lg discord-username">${discordUser.username}</span>
 						${logoutButton}
-						${siteMasterButton}
+						${staffButton}
 					</div>`;
-				
+
 				document.getElementById('user-logout-btn').addEventListener('click', () => clearSession(false));
-				
-				if (isSiteMaster) {
-					document.getElementById('sitemaster-btn').addEventListener('click', () => showPage('sitemaster-panel'));
+
+				if (canAccessStaffPanel) {
+					document.getElementById('staff-panel-btn').addEventListener('click', () => showPage('staff-panel'));
 				}
 			} else {
-				// This is the original login button logic, it remains the same
-				authButtonsContainer.innerHTML = `<button id="login-btn" class="discord-btn text-white font-bold py-3 px-6 rounded-lg inline-flex items-center text-lg"><svg class="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 24 24"><path d="M20.317 4.36981C18.276 2.88453 15.9317 2.02922 13.431 2.00003C10.9303 2.02922 8.58601 2.88453 6.54501 4.36981C4.38371 6.0123 2.82531 8.23419 2.08501 10.749C1.98418 11.1373 2.02894 11.543 2.21045 11.8955C2.39196 12.248 2.69777 12.528 3.06801 12.6932L5.12101 13.664C5.43851 13.8213 5.80183 13.8587 6.14901 13.7702C6.49619 13.6817 6.80496 13.4713 7.02801 13.1772C7.32168 12.7836 7.5532 12.3682 7.71701 11.936C7.50013 11.753 7.32174 11.5335 7.19201 11.2882C6.47432 10.1581 6.33851 8.82381 6.80401 7.64121C7.26951 6.45861 8.28801 5.58023 9.54401 5.24123C10.8 4.90222 12.114 5.14365 13.1259 5.88583C14.1378 6.62801 14.7423 7.79813 14.794 9.06421C14.795 9.44421 14.717 9.81821 14.565 10.1652C15.176 11.64 15.029 13.284 14.195 14.612C13.36 15.942 11.983 16.821 10.471 16.983C9.07929 17.1439 7.64134 16.592 6.54501 15.4812V15.4812C7.45266 16.2088 8.56342 16.6669 9.76101 16.8012C11.536 17.0212 13.313 16.4802 14.671 15.3042C15.2217 14.8113 15.6813 14.2312 16.033 13.5932C16.293 14.2492 16.69 14.8512 17.206 15.3612C18.151 16.2152 19.399 16.7002 20.702 16.7002C20.999 16.6992 21.285 16.6092 21.522 16.4422C21.93 16.1582 22.1 15.6512 21.936 15.1752C21.432 13.6232 20.455 12.2922 19.14 11.4312C18.8182 11.2036 18.4485 11.0493 18.056 10.9812C18.441 10.4852 18.732 9.91421 18.911 9.29421C19.131 8.52821 19.131 7.71221 18.911 6.94621C18.643 5.98621 18.016 5.16021 17.14 4.60021C16.264 4.04021 15.194 3.80021 14.13 3.94521C14.542 3.32821 15.042 2.79321 15.61 2.36121C16.179 1.92921 16.809 1.60521 17.472 1.40121L17.58 0.0712128C17.348 -0.0167872 17.102 -0.0577872 16.858 0.0242128C14.821 0.443213 12.971 1.47221 11.525 2.99821C10.795 3.75021 10.199 4.61521 9.77601 5.56021C10.451 5.45221 11.14 5.43321 11.823 5.50521C12.871 5.61521 13.841 6.06221 14.551 6.77221C15.261 7.48221 15.665 8.40621 15.665 9.38021C15.665 10.3542 15.261 11.2782 14.551 11.9882C13.841 12.6982 12.871 13.1452 11.823 13.2552C11.14 13.3272 10.451 13.3082 9.77601 13.2002C9.55701 14.0372 9.14101 14.8112 8.55901 15.4812L8.55901 15.4822C7.65136 16.2098 6.5406 16.6669 5.34301 16.8022C4.14542 16.9365 2.95379 16.7374 1.90501 16.2332C1.7235 15.8797 1.62267 15.484 1.61101 15.0822C2.17549 13.8076 3.12033 12.7834 4.31901 12.1642C3.59601 10.8802 3.32101 9.42321 3.54501 7.99421C3.76901 6.56521 4.47901 5.25321 5.56101 4.29521C7.45855 2.59972 9.94334 1.66421 12.5 1.69321H12.501C15.0577 1.66421 17.5424 2.59972 19.44 4.29521C20.522 5.25321 21.232 6.56521 21.456 7.99421C21.68 9.42321 21.405 10.8802 20.682 12.1632C21.8807 12.7834 22.8255 13.8076 23.389 15.0782C23.3773 15.484 23.2765 15.8797 23.096 16.2322C22.0462 16.7374 20.8546 16.9365 19.657 16.8022C18.4594 16.6679 17.3486 16.2098 16.441 15.4822C15.859 14.8112 15.443 14.0372 15.224 13.2002C14.549 13.3082 13.86 13.3272 13.177 13.2552C12.129 13.1452 11.159 12.6982 10.449 11.9882C9.73901 11.2782 9.33501 10.3542 9.33501 9.38021C9.33501 8.40621 9.73901 7.48221 10.449 6.77221C11.159 6.06221 12.129 5.61521 13.177 5.50521C13.86 5.43321 14.549 5.45221 15.224 5.56021C14.801 4.61521 14.205 3.75021 13.475 2.99821C12.029 1.47221 10.179 0.443213 8.14201 0.0242128C7.89801 -0.0577872 7.65201 -0.0167872 7.42101 0.0712128L7.52801 1.40121C8.19101 1.60521 8.82101 1.92921 9.39001 2.36121C9.95801 2.79321 10.458 3.32821 10.873 3.94521C9.80601 3.80021 8.73601 4.04021 7.86001 4.60021C6.98401 5.16021 6.35701 5.98621 6.08901 6.94621C5.86901 7.71221 5.86901 8.52821 6.08901 9.29421C6.26801 9.91421 6.55901 10.4852 6.94401 10.9812C6.55153 11.0493 6.18182 11.2036 5.86001 11.4312C4.54501 12.2922 3.56801 13.6232 3.06401 15.1752C2.90001 15.6512 3.07001 16.1582 3.47801 16.4422C3.71501 16.6092 4.00101 16.6992 4.29501 16.7002C5.60101 16.7002 6.84901 16.2152 7.79401 15.3612C8.31001 14.8512 8.70701 14.2492 8.96701 13.5932C9.31869 14.2312 9.77831 14.8113 10.329 15.3042C11.687 16.4802 13.464 17.0212 15.239 16.8012C16.4366 16.6669 17.5474 16.2088 18.455 15.4812C19.4587 16.592 20.9207 17.1439 22.312 16.983C23.824 16.821 25.201 15.942 26.035 14.614C26.87 13.284 27.023 11.64 26.411 10.1672C26.259 9.81821 26.181 9.44421 26.181 9.06521C26.2327 7.79813 26.8372 6.62801 27.8491 5.88583C28.861 5.14365 30.175 4.90222 31.431 5.24123C32.687 5.58023 33.7055 6.45861 34.171 7.64121C34.6365 8.82381 34.5007 10.1581 33.784 11.2872C33.6543 11.5335 33.4759 11.753 33.259 11.936C33.4228 12.3682 33.6543 12.7836 33.948 13.1772C34.171 13.4713 34.4798 13.6817 34.827 13.7702C35.1742 13.8587 35.5375 13.8213 35.855 13.664L37.908 12.6932C38.2782 12.528 38.584 12.248 38.7655 11.8955C38.9471 11.543 38.9918 11.1373 38.891 10.749C38.1507 8.23419 36.5923 6.0123 34.431 4.36981C32.39 2.88453 30.0457 2.02922 27.545 2.00003C25.0443 2.02922 22.699 2.88453 20.658 4.36981L20.317 4.36981Z"/></svg>Login with Discord</button>`;
+				authButtonsContainer.innerHTML = `<button id="login-btn" class="discord-btn text-white font-bold py-3 px-6 rounded-lg inline-flex items-center text-lg"><svg class="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 24 24"><path d="..."/></svg>Login with Discord</button>`;
 				document.getElementById('login-btn').addEventListener('click', handleLogin);
 			}
 		}
