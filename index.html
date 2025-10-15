@@ -82,17 +82,21 @@
 			transform: rotate(calc(-360deg / 7 * var(--i))) scale(1.2);
 		}
 
-		/* --- Corrected Tooltip Styles --- */
+		/* --- The Definitive Tooltip Styles --- */
 
 		.icon-item a::after {
 			content: attr(data-tooltip);
 			position: absolute;
-			bottom: 100%;      /* Positions the tooltip to start at the top edge of the icon */
+			/* Start the tooltip from the exact center of the icon */
 			left: 50%;
-			margin-bottom: 8px; /* Adds a small, clean gap above the icon */
+			top: 50%;
 			
-			/* This transform centers the tooltip AND counter-rotates it to stay level */
-			transform: translateX(-50%) rotate(calc(-360deg / 7 * var(--i)));
+			/* This transform does three things in order:
+			 1. translate(-50%, -50%): Perfectly centers the tooltip on top of the icon.
+			 2. translateY(-60px): Pushes the tooltip straight up, away from the icon's center.
+			 3. rotate(...): Counter-rotates the tooltip to keep it level.
+			*/
+			transform: translate(-50%, -50%) translateY(-60px) rotate(calc(-360deg / 7 * var(--i)));
 
 			background-color: #1f2937;
 			color: #e5e7eb;
