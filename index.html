@@ -207,8 +207,16 @@
                     <input type="text" id="verify-ingame-name" name="verify-ingame-name" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" required>
                 </div>
                 <div class="mb-4">
-					<label for="verify-character-image" class="block text-sm font-medium text-gray-300 mb-1">Character Image</label>
-					<input type="file" id="verify-character-image" name="verify-character-image" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-600 file:text-gray-300 hover:file:bg-gray-700" accept="image/png, image/jpeg, image/gif" required>
+					<label class="block text-sm font-medium text-gray-300 mb-1">Character Image</label>
+					<div id="character-image-preview-container" class="hidden">
+						<div class="flex items-center gap-4">
+							<img id="character-image-preview" src="" class="w-16 h-16 rounded-md border-2 border-gray-600 bg-gray-700">
+							<button type="button" id="change-image-btn" class="text-sm text-blue-400 hover:text-blue-300 font-semibold">Change Image</button>
+						</div>
+					</div>
+					<div id="character-image-upload-container">
+						 <input type="file" id="verify-character-image" name="verify-character-image" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-600 file:text-gray-300 hover:file:bg-gray-700" accept="image/png, image/jpeg, image/gif">
+					</div>
 				</div>
                 <div class="mb-4">
                     <label for="verify-date" class="block text-sm font-medium text-gray-300 mb-1">Date Captured</label>
@@ -401,7 +409,40 @@
             dexGridEl.innerHTML = pokemonData.map(p => { const isCap = userDexData.has(p.id), isPen = userPendingData.has(p.id); const status = isCap ? 'captured' : (isPen ? 'pending' : ''); return `<div class="dex-entry ${status}" data-id="${p.id}"><img src="${p.sprite}" class="sprite"><p>#${String(p.id).padStart(3,'0')}</p><p class="text-xs text-gray-400">${p.name}</p></div>`; }).join('');
             document.querySelectorAll('.dex-entry').forEach(e => e.addEventListener('click', (ev) => { if (!discordUser) { handleLogin(); return; } const id = parseInt(ev.currentTarget.dataset.id); if (userDexData.has(id) || userPendingData.has(id)) return; const p = pokemonData.find(pk => pk.id === id); if (p) openVerificationModal(p); }));
         }
-        function openVerificationModal(p) { verifyPokemonIdInput.value = p.id; verifyPokemonNameEl.textContent = `Verify: ${p.name}`; verifyPokemonSpriteEl.src = p.sprite; verifyDiscordUserInput.value = discordUser.username; verificationForm.reset(); verificationModal.classList.remove('hidden'); }
+		async function openVerificationModal(p) {
+			// Standard setup
+			verifyPokemonIdInput.value = p.id;
+			verifyPokemonNameEl.textContent = `Verify: ${p.name}`;
+			verifyPokemonSpriteEl.src = p.sprite;
+			verifyDiscordUserInput.value = discordUser.username;
+			verificationForm.reset();
+
+			// Get the new UI elements for the image preview and uploader
+			const previewContainer = document.getElementById('character-image-preview-container');
+			const uploadContainer = document.getElementById('character-image-upload-container');
+			const previewImg = document.getElementById('character-image-preview');
+			const fileInput = document.getElementById('verify-character-image');
+
+			// Fetch the user's saved image URL from their profile in Firestore
+			const userSnap = await getDoc(doc(db, 'users', currentUser.uid));
+			const savedImageUrl = userSnap.exists() ? userSnap.data().characterImageUrl : null;
+
+			if (savedImageUrl) {
+				// If a URL exists, show the preview and hide the uploader
+				previewImg.src = savedImageUrl;
+				previewContainer.classList.remove('hidden');
+				uploadContainer.classList.add('hidden');
+				fileInput.required = false; // The input is not required if an image is already saved
+			} else {
+				// If no URL exists, show the uploader and hide the preview
+				previewContainer.classList.add('hidden');
+				uploadContainer.classList.remove('hidden');
+				fileInput.required = true; // The input is required for the first submission
+			}
+
+			// Show the main modal
+			verificationModal.classList.remove('hidden');
+		}
         function closeVerificationModal() { verificationModal.classList.add('hidden'); }
 		
         // This helper function converts a file to a Base64 string, which is needed to send it to the Google Script.
@@ -418,48 +459,45 @@
 			const fileInput = e.target['verify-character-image'];
 			const file = fileInput.files[0];
 
-			if (!file) {
-				alert("Please select a character image to upload.");
-				return;
-			}
-
 			btn.disabled = true;
-			btn.textContent = 'Uploading...';
+			btn.textContent = 'Processing...';
 
-			// This placeholder will be replaced by your GitHub Actions workflow.
 			const GOOGLE_SCRIPT_URL = "##GOOGLE_APPS_SCRIPT_URL##";
 
 			try {
-				// 1. Convert the image file to a Base64 string.
-				const base64File = await toBase64(file);
+				let finalImageUrl;
 
-				// 2. Send the image data to your Google Apps Script endpoint.
-				const response = await fetch(GOOGLE_SCRIPT_URL, {
-					method: 'POST',
-					// The body must be a stringified JSON object for Google Apps Script.
-					body: JSON.stringify({
-						filename: file.name,
-						mimeType: file.type,
-						fileContent: base64File
-					}),
-					headers: {
-						'Content-Type': 'text/plain;charset=utf-8', // Required by Google Apps Script for this method.
-					},
-				});
-				
-				if (!response.ok) {
-					throw new Error('Image upload failed. The server responded with an error.');
+				if (file) {
+					// A new image was selected, so we run the full upload process.
+					btn.textContent = 'Uploading...';
+					const base64File = await toBase64(file);
+					const response = await fetch(GOOGLE_SCRIPT_URL, {
+						method: 'POST',
+						body: JSON.stringify({ filename: file.name, mimeType: file.type, fileContent: base64File }),
+						headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+					});
+
+					if (!response.ok) throw new Error('Image upload failed on the server.');
+					const data = await response.json();
+					if (data.error) throw new Error(data.error);
+
+					finalImageUrl = data.url;
+
+					// IMPORTANT: Save the new image URL to the user's profile for next time.
+					const userRef = doc(db, 'users', currentUser.uid);
+					await updateDoc(userRef, { characterImageUrl: finalImageUrl });
+
+				} else {
+					// No new image was selected; use the one already saved on their profile.
+					const userSnap = await getDoc(doc(db, 'users', currentUser.uid));
+					const savedUrl = userSnap.exists() ? userSnap.data().characterImageUrl : null;
+					if (!savedUrl) {
+						throw new Error("No character image has been selected or saved. Please upload one.");
+					}
+					finalImageUrl = savedUrl;
 				}
 
-				const data = await response.json();
-				// Check if the script itself returned an error message.
-				if (data.error) {
-					throw new Error(data.error);
-				}
-				
-				const imageUrl = data.url; // The public Discord CDN URL returned by the script.
-
-				// 3. Prepare the data for Firestore, now with the new image URL.
+				// Now, create the verification request with the correct image URL.
 				const pokemonId = parseInt(verifyPokemonIdInput.value);
 				const requestData = {
 					userId: currentUser.uid,
@@ -468,14 +506,13 @@
 					pokemonId: pokemonId,
 					pokemonName: pokemonData.find(p => p.id === pokemonId).name,
 					inGameName: e.target['verify-ingame-name'].value,
-					characterImageUrl: imageUrl, // Storing the Discord URL instead of a filename.
+					characterImageUrl: finalImageUrl, // Use the final determined URL
 					dateCaptured: e.target['verify-date'].value,
 					encounters: e.target['verify-encounters'].value || null,
 					status: 'pending',
 					submittedAt: serverTimestamp()
 				};
 
-				// 4. Save the verification request to Firestore and update the UI.
 				await addDoc(collection(db, "verification-requests"), requestData);
 				userPendingData.add(pokemonId);
 				renderDexGrid();
@@ -483,9 +520,8 @@
 
 			} catch (error) {
 				console.error("Upload and submit error:", error);
-				alert(`Failed to upload image or submit verification: ${error.message}`);
+				alert(`Failed to submit verification: ${error.message}`);
 			} finally {
-				// 5. Always re-enable the button, whether it succeeded or failed.
 				btn.disabled = false;
 				btn.textContent = 'Submit';
 			}
@@ -782,6 +818,17 @@
 			shinyHallSearchInput.addEventListener('input', () => {
 				// We call the existing function, which will now use the search value to filter.
 				loadAndRenderShinyHall();
+			});
+		}
+
+		const changeImageBtn = document.getElementById('change-image-btn');
+		if (changeImageBtn) {
+			changeImageBtn.addEventListener('click', () => {
+				document.getElementById('character-image-preview-container').classList.add('hidden');
+				const uploadContainer = document.getElementById('character-image-upload-container');
+				uploadContainer.classList.remove('hidden');
+				const fileInput = document.getElementById('verify-character-image');
+				fileInput.required = true; // Make the input required again since they want to change it
 			});
 		}
 
