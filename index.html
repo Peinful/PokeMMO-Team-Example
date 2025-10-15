@@ -46,6 +46,7 @@
 		}
 
 		.icon-item a {
+			/* This is the original, correct positioning for the icons */
 			position: absolute;
 			left: 50%;
 			top: 50%;
@@ -64,6 +65,25 @@
 			cursor: pointer;
 			transition: all 0.3s ease;
 			pointer-events: auto;
+		}
+
+		.icon-item a .fa-solid {
+			/* This crucial line counter-rotates the Font Awesome icon to keep it upright */
+			transform: rotate(calc(-360deg / 7 * var(--i)));
+			transition: transform 0.3s ease;
+		}
+
+		.icon-item a:hover {
+			/* This restores the hover effect for the circle */
+			background-color: #5865F2;
+			color: #fff;
+			border-color: #5865F2;
+			box-shadow: 0 0 15px #5865F2;
+		}
+
+		.icon-item a:hover .fa-solid {
+			/* This restores the zoom effect on hover for the icon */
+			transform: rotate(calc(-360deg / 7 * var(--i))) scale(1.2);
 		}
 		
         #flying-crows-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; overflow: hidden; z-index: 1; }
