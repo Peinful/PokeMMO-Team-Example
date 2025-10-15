@@ -148,9 +148,10 @@
     </div>
     <div id="shiny-hall-view" class="hidden fullscreen-page p-4 md:p-8">
         <header class="flex justify-between items-center mb-8 pb-4 border-b border-gray-700">
-            <button class="back-btn text-gray-400 hover:text-white transition-colors"><i class="fa-solid fa-arrow-left mr-2"></i> Back</button>
-            <h1 class="text-3xl font-bold text-center">Shiny Hall of Fame</h1><div class="w-24"></div>
-        </header><main id="shiny-hall-grid" class="content-grid shiny-hall-grid"></main>
+			<button class="back-btn text-gray-400 hover:text-white transition-colors"><i class="fa-solid fa-arrow-left mr-2"></i> Back</button>
+			<h1 class="text-3xl font-bold text-center">Shiny Hall of Fame</h1>
+			<input type="text" id="shiny-hall-search" placeholder="Search by user..." class="bg-gray-700 p-2 rounded-md w-48 text-white">
+		</header>
     </div>
     <div id="staff-panel-view" class="hidden fullscreen-page p-4 md:p-8">
         <header class="flex justify-between items-center mb-8 pb-4 border-b border-gray-700">
@@ -226,7 +227,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, addDoc, serverTimestamp, deleteDoc, writeBatch, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+		import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, addDoc, serverTimestamp, deleteDoc, writeBatch, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"; // Add arrayRemove here
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         
         // --- CONFIGURATION ---
@@ -489,27 +490,41 @@
 			}
 		}
 
-        async function loadAndRenderShinyHall() {
-			const q = query(collection(db, "verification-requests"), where("status", "==", "approved"));
-			const snapshot = await getDocs(q);
-			const grid = document.getElementById('shiny-hall-grid');
+		async function loadAndRenderShinyHall() {
+			// Fetch all approved shinies once and store them to avoid re-fetching on every search.
+			if (!window.shinyHallCache) {
+				const q = query(collection(db, "verification-requests"), where("status", "==", "approved"));
+				const snapshot = await getDocs(q);
+				window.shinyHallCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+			}
 
-			if (snapshot.empty) {
-				grid.innerHTML = `<p class="col-span-full text-center text-gray-400">Hall of Fame is empty.</p>`;
+			const grid = document.getElementById('shiny-hall-grid');
+			const searchTerm = document.getElementById('shiny-hall-search').value.toLowerCase();
+
+			// Filter the cached data based on the search term.
+			const filteredEntries = window.shinyHallCache.filter(e => 
+				e.discordUsername.toLowerCase().includes(searchTerm) || e.inGameName.toLowerCase().includes(searchTerm)
+			);
+
+			if (filteredEntries.length === 0) {
+				grid.innerHTML = `<p class="col-span-full text-center text-gray-400">No matching entries found.</p>`;
 				return;
 			}
 
-			grid.innerHTML = snapshot.docs.map(doc => {
-				const e = doc.data();
+			grid.innerHTML = filteredEntries.map(e => {
 				const sprite = pokemonData.find(p => p.id === e.pokemonId)?.sprite || '';
 
-				// CHANGED: This now uses 'characterImageUrl' directly from the database
-				const characterImageSrc = e.characterImageUrl; 
+				// Conditionally add a delete button if the logged-in user is a Site Master.
+				const deleteButton = isSiteMaster ? 
+					`<button class="delete-hall-entry-btn absolute top-2 right-2 text-gray-500 hover:text-red-500 transition-colors" data-id="${e.id}" data-userid="${e.userId}" data-pokemonid="${e.pokemonId}">
+						<i class="fa-solid fa-trash-can"></i>
+					</button>` : '';
 
 				return `
-					<div class="hall-entry">
+					<div class="hall-entry relative">
+						${deleteButton}
 						<img src="${sprite}" class="pokemon-sprite">
-						<img src="${characterImageSrc}" class="character-image" onerror="this.src='https://placehold.co/80x80/374151/9ca3af?text=N/A'">
+						<img src="${e.characterImageUrl}" class="character-image" onerror="this.src='https://placehold.co/80x80/374151/9ca3af?text=N/A'">
 						<h3 class="text-xl font-bold mt-2">${e.pokemonName}</h3>
 						<p class="text-sm font-semibold text-gray-300">${e.inGameName}</p>
 						<p class="text-xs text-gray-500">by ${e.discordUsername}</p>
@@ -519,6 +534,11 @@
 						</div>
 					</div>`;
 			}).join('');
+
+			// Attach event listeners to the new delete buttons.
+			document.querySelectorAll('.delete-hall-entry-btn').forEach(btn => {
+				btn.addEventListener('click', handleHallEntryDelete);
+			});
 		}
 
         async function loadAndRenderVerificationQueue() {
