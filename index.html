@@ -65,57 +65,6 @@
 			transition: all 0.3s ease;
 			pointer-events: auto;
 		}
-
-		.icon-item a .fa-solid {
-			transform: rotate(calc(-360deg / 7 * var(--i)));
-			transition: transform 0.3s ease;
-		}
-
-		.icon-item a:hover {
-			background-color: #5865F2;
-			color: #fff;
-			border-color: #5865F2;
-			box-shadow: 0 0 15px #5865F2;
-		}
-
-		.icon-item a:hover .fa-solid {
-			transform: rotate(calc(-360deg / 7 * var(--i))) scale(1.2);
-		}
-
-		/* --- The Definitive Tooltip Styles --- */
-
-		.icon-item a::after {
-			content: attr(data-tooltip);
-			position: absolute;
-			/* Start the tooltip from the exact center of the icon */
-			left: 50%;
-			top: 50%;
-			
-			/* This transform does three things in order:
-			 1. translate(-50%, -50%): Perfectly centers the tooltip on top of the icon.
-			 2. translateY(-60px): Pushes the tooltip straight up, away from the icon's center.
-			 3. rotate(...): Counter-rotates the tooltip to keep it level.
-			*/
-			transform: translate(-50%, -50%) translateY(-60px) rotate(calc(-360deg / 7 * var(--i)));
-
-			background-color: #1f2937;
-			color: #e5e7eb;
-			padding: 0.5rem 0.75rem;
-			border-radius: 0.375rem;
-			font-size: 0.875rem;
-			font-weight: 500;
-			white-space: nowrap;
-			pointer-events: none;
-			opacity: 0;
-			transition: opacity 0.2s ease;
-			visibility: hidden;
-			z-index: 100;
-		}
-
-		.icon-item a:hover::after {
-			opacity: 1;
-			visibility: visible;
-		}
 		
         #flying-crows-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; overflow: hidden; z-index: 1; }
         .flying-crow {
@@ -179,6 +128,9 @@
             <div id="auth-buttons"></div>
         </div>
     </div>
+
+	<div id="universal-tooltip" class="absolute bg-gray-800 text-white text-sm font-semibold py-2 px-3 rounded-lg shadow-lg pointer-events-none opacity-0 transition-opacity z-[100]"></div>
+    <div id="dashboard-view" class="hidden fullscreen-page p-4 md:p-8">
     
     <div id="dashboard-view" class="hidden fullscreen-page p-4 md:p-8">
         <header class="flex flex-col sm:flex-row justify-between items-center mb-8 pb-4 border-b border-gray-700">
@@ -311,6 +263,7 @@
         const TEAM_ID = "crow-syndicate";
         const POKEMON_COUNT = 649;
         const ALL_PERMISSIONS = ['can_verify_shinies', 'can_manage_recruitment', 'can_edit_pages', 'can_manage_bounties'];
+		
 
         // --- STATE ---
         let currentUser = null, discordUser = null, isSiteMaster = false, userPermissions = new Set();
@@ -338,6 +291,37 @@
         const pageTitleEl = document.getElementById('page-title'), pageContentEl = document.getElementById('page-content');
         const userProfileEl = document.getElementById('user-profile'), teamNameEl = document.getElementById('team-name'), teamMembersEl = document.getElementById('team-members');
         const joinTeamContainer = document.getElementById('join-team-container');
+		const universalTooltip = document.getElementById('universal-tooltip');
+
+		if (universalTooltip) {
+			iconLinks.forEach(link => {
+				// When the mouse enters an icon's area
+				link.addEventListener('mouseenter', (e) => {
+					const tooltipText = link.dataset.tooltip;
+					if (!tooltipText) return;
+
+					// Set the text and show the tooltip to calculate its size
+					universalTooltip.textContent = tooltipText;
+					universalTooltip.classList.remove('opacity-0');
+
+					// Get the position of the icon on the screen
+					const iconRect = link.getBoundingClientRect();
+					
+					// Calculate the correct top and left position
+					const top = iconRect.top - universalTooltip.offsetHeight - 10; // 10px gap above
+					const left = iconRect.left + (iconRect.width / 2) - (universalTooltip.offsetWidth / 2);
+
+					// Apply the position
+					universalTooltip.style.top = `${top}px`;
+					universalTooltip.style.left = `${left}px`;
+				});
+
+				// When the mouse leaves, hide the tooltip
+				link.addEventListener('mouseleave', () => {
+					universalTooltip.classList.add('opacity-0');
+				});
+			});
+		}
 
         let app, auth, db;
         try { app = initializeApp(firebaseConfig); auth = getAuth(app); db = getFirestore(app); } catch (e) { console.error("Firebase init failed.", e); }
