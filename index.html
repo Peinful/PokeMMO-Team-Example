@@ -197,11 +197,10 @@
                     <label for="verify-ingame-name" class="block text-sm font-medium text-gray-300 mb-1">In-game Name</label>
                     <input type="text" id="verify-ingame-name" name="verify-ingame-name" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" required>
                 </div>
-                 <div class="mb-4">
-                    <label for="verify-character-image" class="block text-sm font-medium text-gray-300 mb-1">Character Image Filename</label>
-                    <input type="text" id="verify-character-image" name="verify-character-image" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" placeholder="e.g., your-name.png" required>
-                    <p class="text-xs text-gray-500 mt-1">Upload image to 'images/characters' in the repo and enter the filename.</p>
-                </div>
+                <div class="mb-4">
+					<label for="verify-character-image" class="block text-sm font-medium text-gray-300 mb-1">Character Image</label>
+					<input type="file" id="verify-character-image" name="verify-character-image" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-600 file:text-gray-300 hover:file:bg-gray-700" accept="image/png, image/jpeg, image/gif" required>
+				</div>
                 <div class="mb-4">
                     <label for="verify-date" class="block text-sm font-medium text-gray-300 mb-1">Date Captured</label>
                     <input type="date" id="verify-date" name="verify-date" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white" required>
@@ -396,32 +395,100 @@
         function openVerificationModal(p) { verifyPokemonIdInput.value = p.id; verifyPokemonNameEl.textContent = `Verify: ${p.name}`; verifyPokemonSpriteEl.src = p.sprite; verifyDiscordUserInput.value = discordUser.username; verificationForm.reset(); verificationModal.classList.remove('hidden'); }
         function closeVerificationModal() { verificationModal.classList.add('hidden'); }
         async function handleVerificationSubmit(e) {
-            e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = '...';
-            const pokemonId = parseInt(verifyPokemonIdInput.value);
-            const requestData = {
-                userId: currentUser.uid, discordUsername: discordUser.username, discordId: discordUser.id,
-                pokemonId: pokemonId, pokemonName: pokemonData.find(p => p.id === pokemonId).name,
-                inGameName: e.target['verify-ingame-name'].value, characterImage: e.target['verify-character-image'].value,
-                dateCaptured: e.target['verify-date'].value, encounters: e.target['verify-encounters'].value || null,
-                status: 'pending', submittedAt: serverTimestamp()
-            };
-            try {
-                await addDoc(collection(db, "verification-requests"), requestData);
-                userPendingData.add(pokemonId);
-                renderDexGrid(); closeVerificationModal();
-            } catch (error) { console.error("Submit error:", error); alert("Failed to submit.");
-            } finally { btn.disabled = false; btn.textContent = 'Submit'; }
-        }
+			e.preventDefault();
+			const btn = e.target.querySelector('button[type="submit"]');
+			const fileInput = e.target['verify-character-image'];
+			const file = fileInput.files[0];
+
+			if (!file) {
+				alert("Please select a character image to upload.");
+				return;
+			}
+
+			btn.disabled = true;
+			btn.textContent = 'Uploading...';
+
+			try {
+				// 1. Prepare the image file to be sent to our serverless function
+				const formData = new FormData();
+				formData.append('image', file);
+
+				// 2. Send the image to our secure bridge endpoint (/api/uploadImage)
+				const response = await fetch('/api/uploadImage', {
+					method: 'POST',
+					body: formData,
+				});
+
+				if (!response.ok) {
+					throw new Error('Image upload failed.');
+				}
+
+				const data = await response.json();
+				const imageUrl = data.url; // The public Discord CDN URL
+
+				// 3. Prepare the data for Firestore, now with the Discord image URL
+				const pokemonId = parseInt(verifyPokemonIdInput.value);
+				const requestData = {
+					userId: currentUser.uid,
+					discordUsername: discordUser.username,
+					discordId: discordUser.id,
+					pokemonId: pokemonId,
+					pokemonName: pokemonData.find(p => p.id === pokemonId).name,
+					inGameName: e.target['verify-ingame-name'].value,
+					characterImageUrl: imageUrl, // Storing the Discord URL
+					dateCaptured: e.target['verify-date'].value,
+					encounters: e.target['verify-encounters'].value || null,
+					status: 'pending',
+					submittedAt: serverTimestamp()
+				};
+
+				// 4. Save the request to Firestore and update the UI
+				await addDoc(collection(db, "verification-requests"), requestData);
+				userPendingData.add(pokemonId);
+				renderDexGrid();
+				closeVerificationModal();
+
+			} catch (error) {
+				console.error("Upload and submit error:", error);
+				alert("Failed to upload image or submit verification. Please try again.");
+			} finally {
+				btn.disabled = false;
+				btn.textContent = 'Submit';
+			}
+		}
 
         async function loadAndRenderShinyHall() {
-            const q = query(collection(db, "verification-requests"), where("status", "==", "approved"));
-            const snapshot = await getDocs(q);
-            if (snapshot.empty) { document.getElementById('shiny-hall-grid').innerHTML = `<p class="col-span-full text-center text-gray-400">Hall of Fame is empty.</p>`; return; }
-            document.getElementById('shiny-hall-grid').innerHTML = snapshot.docs.map(d => { const e = d.data();
-                return `<div class="hall-entry"><img src="${pokemonData.find(p => p.id === e.pokemonId)?.sprite}" class="pokemon-sprite"><img src="images/characters/${e.characterImage}" class="character-image" onerror="this.src='https://placehold.co/80x80/374151/9ca3af?text=N/A'"><h3 class="text-xl font-bold mt-2">${e.pokemonName}</h3><p class="text-sm font-semibold text-gray-300">${e.inGameName}</p><p class="text-xs text-gray-500">by ${e.discordUsername}</p><div class="bg-gray-700/50 rounded-md p-3 w-full mt-4 text-xs text-gray-300 space-y-1"><p><strong>Date:</strong> ${e.dateCaptured}</p>${e.encounters ? `<strong>Encounters:</strong> ${e.encounters}` : ''}</div></div>`;
-            }).join('');
-        }
+			const q = query(collection(db, "verification-requests"), where("status", "==", "approved"));
+			const snapshot = await getDocs(q);
+			const grid = document.getElementById('shiny-hall-grid');
+
+			if (snapshot.empty) {
+				grid.innerHTML = `<p class="col-span-full text-center text-gray-400">Hall of Fame is empty.</p>`;
+				return;
+			}
+
+			grid.innerHTML = snapshot.docs.map(doc => {
+				const e = doc.data();
+				const sprite = pokemonData.find(p => p.id === e.pokemonId)?.sprite || '';
+
+				// CHANGED: This now uses 'characterImageUrl' directly from the database
+				const characterImageSrc = e.characterImageUrl; 
+
+				return `
+					<div class="hall-entry">
+						<img src="${sprite}" class="pokemon-sprite">
+						<img src="${characterImageSrc}" class="character-image" onerror="this.src='https://placehold.co/80x80/374151/9ca3af?text=N/A'">
+						<h3 class="text-xl font-bold mt-2">${e.pokemonName}</h3>
+						<p class="text-sm font-semibold text-gray-300">${e.inGameName}</p>
+						<p class="text-xs text-gray-500">by ${e.discordUsername}</p>
+						<div class="bg-gray-700/50 rounded-md p-3 w-full mt-4 text-xs text-gray-300 space-y-1">
+							<p><strong>Date:</strong> ${e.dateCaptured}</p>
+							${e.encounters ? `<strong>Encounters:</strong> ${e.encounters}` : ''}
+						</div>
+					</div>`;
+			}).join('');
+		}
+
         async function loadAndRenderVerificationQueue() {
             const q = query(collection(db, "verification-requests"), where("status", "==", "pending"));
             const snapshot = await getDocs(q);
