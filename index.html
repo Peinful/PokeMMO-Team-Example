@@ -394,7 +394,16 @@
         }
         function openVerificationModal(p) { verifyPokemonIdInput.value = p.id; verifyPokemonNameEl.textContent = `Verify: ${p.name}`; verifyPokemonSpriteEl.src = p.sprite; verifyDiscordUserInput.value = discordUser.username; verificationForm.reset(); verificationModal.classList.remove('hidden'); }
         function closeVerificationModal() { verificationModal.classList.add('hidden'); }
-        async function handleVerificationSubmit(e) {
+		
+        // This helper function converts a file to a Base64 string, which is needed to send it to the Google Script.
+		const toBase64 = file => new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.readAsDataURL(file);
+			reader.onload = () => resolve(reader.result);
+			reader.onerror = error => reject(error);
+		});
+
+		async function handleVerificationSubmit(e) {
 			e.preventDefault();
 			const btn = e.target.querySelector('button[type="submit"]');
 			const fileInput = e.target['verify-character-image'];
@@ -408,25 +417,40 @@
 			btn.disabled = true;
 			btn.textContent = 'Uploading...';
 
+			// This placeholder will be replaced by your GitHub Actions workflow.
+			const GOOGLE_SCRIPT_URL = "##GOOGLE_APPS_SCRIPT_URL##";
+
 			try {
-				// 1. Prepare the image file to be sent to our serverless function
-				const formData = new FormData();
-				formData.append('image', file);
+				// 1. Convert the image file to a Base64 string.
+				const base64File = await toBase64(file);
 
-				// 2. Send the image to our secure bridge endpoint (/api/uploadImage)
-				const response = await fetch('/api/uploadImage', {
+				// 2. Send the image data to your Google Apps Script endpoint.
+				const response = await fetch(GOOGLE_SCRIPT_URL, {
 					method: 'POST',
-					body: formData,
+					// The body must be a stringified JSON object for Google Apps Script.
+					body: JSON.stringify({
+						filename: file.name,
+						mimeType: file.type,
+						fileContent: base64File
+					}),
+					headers: {
+						'Content-Type': 'text/plain;charset=utf-8', // Required by Google Apps Script for this method.
+					},
 				});
-
+				
 				if (!response.ok) {
-					throw new Error('Image upload failed.');
+					throw new Error('Image upload failed. The server responded with an error.');
 				}
 
 				const data = await response.json();
-				const imageUrl = data.url; // The public Discord CDN URL
+				// Check if the script itself returned an error message.
+				if (data.error) {
+					throw new Error(data.error);
+				}
+				
+				const imageUrl = data.url; // The public Discord CDN URL returned by the script.
 
-				// 3. Prepare the data for Firestore, now with the Discord image URL
+				// 3. Prepare the data for Firestore, now with the new image URL.
 				const pokemonId = parseInt(verifyPokemonIdInput.value);
 				const requestData = {
 					userId: currentUser.uid,
@@ -435,14 +459,14 @@
 					pokemonId: pokemonId,
 					pokemonName: pokemonData.find(p => p.id === pokemonId).name,
 					inGameName: e.target['verify-ingame-name'].value,
-					characterImageUrl: imageUrl, // Storing the Discord URL
+					characterImageUrl: imageUrl, // Storing the Discord URL instead of a filename.
 					dateCaptured: e.target['verify-date'].value,
 					encounters: e.target['verify-encounters'].value || null,
 					status: 'pending',
 					submittedAt: serverTimestamp()
 				};
 
-				// 4. Save the request to Firestore and update the UI
+				// 4. Save the verification request to Firestore and update the UI.
 				await addDoc(collection(db, "verification-requests"), requestData);
 				userPendingData.add(pokemonId);
 				renderDexGrid();
@@ -450,8 +474,9 @@
 
 			} catch (error) {
 				console.error("Upload and submit error:", error);
-				alert("Failed to upload image or submit verification. Please try again.");
+				alert(`Failed to upload image or submit verification: ${error.message}`);
 			} finally {
+				// 5. Always re-enable the button, whether it succeeded or failed.
 				btn.disabled = false;
 				btn.textContent = 'Submit';
 			}

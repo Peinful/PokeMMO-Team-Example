@@ -1,3 +1,5 @@
+# In file: .github/workflows/deploy.yml
+
 # This workflow automates the process of deploying your website to GitHub Pages.
 # It securely injects your secret keys from GitHub Secrets into the index.html file
 # and then pushes the result to the 'gh-pages' branch, which serves your live site.
@@ -44,6 +46,8 @@ jobs:
           sed -i 's|##FIREBASE_MESSAGING_SENDER_ID##|${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}|g' index.html
           sed -i 's|##FIREBASE_APP_ID##|${{ secrets.FIREBASE_APP_ID }}|g' index.html
           sed -i 's|##DISCORD_CLIENT_ID##|${{ secrets.DISCORD_CLIENT_ID }}|g' index.html
+          # ADD THIS LINE to replace your Google Script URL secret
+          sed -i 's|##GOOGLE_APPS_SCRIPT_URL##|${{ secrets.GOOGLE_APPS_SCRIPT_URL }}|g' index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -57,4 +61,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
