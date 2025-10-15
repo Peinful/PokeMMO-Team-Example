@@ -573,6 +573,50 @@
                 if (verificationQueueEl.children.length === 0) verificationQueueEl.innerHTML = `<p class="text-center text-gray-400">No pending verifications.</p>`;
             } catch (error) { console.error(`Failed to ${action}:`, error); e.target.disabled = false; e.target.textContent = action; }
         }
+		
+		async function handleHallEntryDelete(e) {
+			if (!isSiteMaster) return; // Security check
+
+			const btn = e.currentTarget;
+			const { id, userid, pokemonid } = btn.dataset;
+
+			if (!confirm("Are you sure you want to permanently delete this Hall of Fame entry? This will also remove it from the user's Shiny Dex.")) {
+				return;
+			}
+
+			btn.disabled = true;
+			btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+
+			try {
+				// Use a batch write to perform multiple operations at once.
+				const batch = writeBatch(db);
+
+				// 1. Delete the main entry from the 'verification-requests' collection.
+				const hallEntryRef = doc(db, "verification-requests", id);
+				batch.delete(hallEntryRef);
+
+				// 2. Remove the shiny from the user's personal dex.
+				const userDexRef = doc(db, `users/${userid}/dex/shiny-dex`);
+				batch.update(userDexRef, {
+					captured: arrayRemove(parseInt(pokemonid))
+				});
+
+				// Commit both operations.
+				await batch.commit();
+
+				// Remove the entry from the UI without a full reload.
+				btn.closest('.hall-entry').remove();
+
+				// Update the local cache to reflect the deletion.
+				window.shinyHallCache = window.shinyHallCache.filter(entry => entry.id !== id);
+
+			} catch (error) {
+				console.error("Failed to delete Hall of Fame entry:", error);
+				alert("An error occurred. The entry could not be deleted.");
+				btn.disabled = false;
+				btn.innerHTML = `<i class="fa-solid fa-trash-can"></i>`;
+			}
+		}
         
         async function renderStaffPanel() {
             const tabs = { verifications: document.getElementById('verifications-tab-btn'), ranks: document.getElementById('ranks-tab-btn'), users: document.getElementById('users-tab-btn') };
@@ -731,6 +775,14 @@
         if (joinTeamBtn) {
             joinTeamBtn.addEventListener('click', handleJoinTeam);
         }
+		
+		const shinyHallSearchInput = document.getElementById('shiny-hall-search');
+		if (shinyHallSearchInput) {
+			shinyHallSearchInput.addEventListener('input', () => {
+				// We call the existing function, which will now use the search value to filter.
+				loadAndRenderShinyHall();
+			});
+		}
 
         const rankForm = document.getElementById('rank-form');
         if (rankForm) {
