@@ -348,7 +348,7 @@
 				// e.g., 'can_manage_bounties': 'bounties-icon'
 			};
 
-			// Hide all permission-based icons initially
+			// Hide all permission-based icons initially, checking if they exist first.
 			Object.values(permissionToIconId).forEach(id => {
 				const iconElement = document.getElementById(id);
 				if (iconElement) {
@@ -356,7 +356,7 @@
 				}
 			});
 
-			//// Show icons based on user's permissions
+			// Show icons based on the user's permissions.
 			userPermissions.forEach(perm => {
 				const iconId = permissionToIconId[perm];
 				const iconElement = document.getElementById(iconId);
@@ -365,7 +365,7 @@
 				}
 			});
 
-			// The logic for the Site Master button is now ENTIRELY in renderAuthButtons,
+			// The logic for the Site Master button is now handled entirely in renderAuthButtons,
 			// so no code is needed here for it.
 		}
 		
@@ -594,9 +594,9 @@
 			if (discordUser) {
 				const avatarUrl = discordUser.avatar ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png` : 'https://cdn.discordapp.com/embed/avatars/0.png';
 				
-				// Conditionally create the button if the user is a Site Master
+				// UPDATED: Changed the classes on this button to give it a background.
 				const siteMasterButton = isSiteMaster 
-					? `<button id="sitemaster-btn" class="ml-4 text-gray-400 hover:text-white transition-colors text-xl" title="Site Master Panel"><i class="fa-solid fa-pencil"></i></button>`
+					? `<button id="sitemaster-btn" class="ml-4 p-2 discord-btn text-white rounded-lg transition-all hover:shadow-lg" title="Site Master Panel"><i class="fa-solid fa-pencil"></i></button>`
 					: '';
 
 				authButtonsContainer.innerHTML = `
@@ -616,6 +616,7 @@
 				document.getElementById('login-btn').addEventListener('click', handleLogin);
 			}
 		}
+
 		function renderClaimSiteState() {
 			showView('landing');
 			authButtonsContainer.innerHTML = `<button id="claim-btn" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-6 rounded-lg inline-flex items-center text-lg"><i class="fa-solid fa-flag mr-3"></i>Claim This Site</button>`;
