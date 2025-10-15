@@ -87,8 +87,9 @@
 		.icon-item a::after {
 			content: attr(data-tooltip);
 			position: absolute;
-			top: -45px;      /* Positions tooltip above the icon circle */
+			bottom: 100%;      /* Positions the tooltip to start at the top edge of the icon */
 			left: 50%;
+			margin-bottom: 8px; /* Adds a small, clean gap above the icon */
 			
 			/* This transform centers the tooltip AND counter-rotates it to stay level */
 			transform: translateX(-50%) rotate(calc(-360deg / 7 * var(--i)));
