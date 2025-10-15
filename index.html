@@ -46,12 +46,10 @@
 		}
 
 		.icon-item a {
-			/* This is the original, correct positioning for the icons */
 			position: absolute;
 			left: 50%;
 			top: 50%;
 			transform: translate(-50%, -50%) rotate(0deg) translateY(-175px);
-			
 			width: 60px;
 			height: 60px;
 			background: #2b3748;
@@ -68,13 +66,11 @@
 		}
 
 		.icon-item a .fa-solid {
-			/* This crucial line counter-rotates the Font Awesome icon to keep it upright */
 			transform: rotate(calc(-360deg / 7 * var(--i)));
 			transition: transform 0.3s ease;
 		}
 
 		.icon-item a:hover {
-			/* This restores the hover effect for the circle */
 			background-color: #5865F2;
 			color: #fff;
 			border-color: #5865F2;
@@ -82,7 +78,6 @@
 		}
 
 		.icon-item a:hover .fa-solid {
-			/* This restores the zoom effect on hover for the icon */
 			transform: rotate(calc(-360deg / 7 * var(--i))) scale(1.2);
 		}
 		
@@ -115,7 +110,7 @@
 			height: 80px;
 			border-radius: 50%;
 			border: 3px solid #4b5563;
-			margin-top: 0.5rem; /* This creates a clean 8px space below the Pokémon */
+			margin-top: 0.5rem;
 			background-color: #374151;
 		}
         .verification-card { background-color: #1F2937; border-radius: 0.5rem; padding: 1rem; border-left: 4px solid #FBBF24; }
@@ -134,7 +129,6 @@
         <div id="landing-view" class="hidden flex-col items-center text-center">
 			<div class="circular-container mb-12">
 				<div class="center-logo"><img src="images/crow.png" alt="Crow Syndicate Logo"></div>
-				
 				<div class="icon-item" style="--i: 0;"><a data-page="shiny-dex" data-tooltip="Shiny Dex"><i class="fa-solid fa-wand-magic-sparkles"></i></a></div>
 				<div class="icon-item" style="--i: 1;"><a data-page="about-us" data-tooltip="About Us"><i class="fa-solid fa-circle-info"></i></a></div>
 				<div class="icon-item" style="--i: 2;"><a data-page="members" data-tooltip="Members"><i class="fa-solid fa-users"></i></a></div>
@@ -143,20 +137,19 @@
 				<div class="icon-item" style="--i: 5;"><a data-page="tournaments" data-tooltip="Tournaments"><i class="fa-solid fa-trophy"></i></a></div>
 				<div class="icon-item" style="--i: 6;"><a data-page="bounties" data-tooltip="Bounties"><i class="fa-solid fa-crosshairs"></i></a></div>
 			</div>
-            <h1 class="text-6xl font-bold text-white drop-shadow-lg mb-4" style="text-shadow: 2px 2px 4px #000;">Crow Syndicate</h1>
+            <h1 class="text-6xl font-bold text-white drop-shadow-lg mb-6" style="text-shadow: 2px 2px 4px #000;">Crow Syndicate</h1>
             <p class="text-gray-200 mb-8 max-w-md bg-black bg-opacity-50 p-2 rounded-md">A PokeMMO team focused on competitive play, community, and strategy.</p>
             <div id="auth-buttons"></div>
         </div>
     </div>
 
 	<div id="universal-tooltip" class="absolute bg-gray-800 text-white text-sm font-semibold py-2 px-3 rounded-lg shadow-lg pointer-events-none opacity-0 transition-opacity z-[100]"></div>
-    <div id="dashboard-view" class="hidden fullscreen-page p-4 md:p-8">
     
     <div id="dashboard-view" class="hidden fullscreen-page p-4 md:p-8">
         <header class="flex flex-col sm:flex-row justify-between items-center mb-8 pb-4 border-b border-gray-700">
             <button class="back-btn text-gray-400 hover:text-white transition-colors mb-4 sm:mb-0"><i class="fa-solid fa-arrow-left mr-2"></i> Back to Home</button>
             <div id="user-profile" class="flex items-center"></div>
-            </header>
+        </header>
         <main class="bg-gray-800 rounded-xl p-6 shadow-lg">
             <h2 id="team-name" class="text-3xl font-bold mb-6 text-center"></h2>
             <div id="team-members" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
@@ -185,6 +178,7 @@
 		</header>
 		<main id="dex-grid" class="content-grid dex-grid"></main>
 	</div>
+
     <div id="shiny-hall-view" class="hidden fullscreen-page p-4 md:p-8">
 		<header class="flex justify-between items-center mb-8 pb-4 border-b border-gray-700">
 			<button class="back-btn text-gray-400 hover:text-white transition-colors"><i class="fa-solid fa-arrow-left mr-2"></i> Back</button>
@@ -193,6 +187,7 @@
 		</header>
 		<main id="shiny-hall-grid" class="content-grid shiny-hall-grid"></main>
 	</div>
+
     <div id="staff-panel-view" class="hidden fullscreen-page p-4 md:p-8">
         <header class="flex justify-between items-center mb-8 pb-4 border-b border-gray-700">
             <button class="back-btn text-gray-400 hover:text-white transition-colors"><i class="fa-solid fa-arrow-left mr-2"></i> Back</button>
@@ -204,12 +199,10 @@
                 <button id="ranks-tab-btn" class="tab-btn py-2 px-4 rounded-t-lg hidden" data-tab="ranks">Manage Ranks</button>
                 <button id="users-tab-btn" class="tab-btn py-2 px-4 rounded-t-lg hidden" data-tab="users">Manage Users</button>
             </div></div>
-
             <div id="verifications-tab" class="tab-content hidden">
                 <h2 class="text-2xl font-semibold mb-4">Pending Shiny Verifications</h2>
                 <div id="verification-queue" class="space-y-4"></div>
             </div>
-
             <div id="ranks-tab" class="tab-content hidden">
                 <h2 class="text-2xl font-semibold mb-4">Ranks</h2>
                 <div id="ranks-list" class="space-y-4"></div>
@@ -275,7 +268,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-		import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, addDoc, serverTimestamp, deleteDoc, writeBatch, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"; // Add arrayRemove here
+		import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, addDoc, serverTimestamp, deleteDoc, writeBatch, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         
         // --- CONFIGURATION ---
@@ -284,7 +277,6 @@
         const TEAM_ID = "crow-syndicate";
         const POKEMON_COUNT = 649;
         const ALL_PERMISSIONS = ['can_verify_shinies', 'can_manage_recruitment', 'can_edit_pages', 'can_manage_bounties'];
-		
 
         // --- STATE ---
         let currentUser = null, discordUser = null, isSiteMaster = false, userPermissions = new Set();
@@ -298,7 +290,7 @@
 			landing: document.getElementById('landing-view'),
 			dashboard: document.getElementById('dashboard-view'),
 			page: document.getElementById('page-view'),
-			shinyDex: document.getElementById('shiny-dex-view'), // This is the line that was likely missing
+			shinyDex: document.getElementById('shiny-dex-view'),
 			shinyHall: document.getElementById('shiny-hall-view'),
 			staffPanel: document.getElementById('staff-panel-view')
 		};
@@ -312,44 +304,13 @@
         const pageTitleEl = document.getElementById('page-title'), pageContentEl = document.getElementById('page-content');
         const userProfileEl = document.getElementById('user-profile'), teamNameEl = document.getElementById('team-name'), teamMembersEl = document.getElementById('team-members');
         const joinTeamContainer = document.getElementById('join-team-container');
-		const universalTooltip = document.getElementById('universal-tooltip');
-
-		if (universalTooltip) {
-			iconLinks.forEach(link => {
-				// When the mouse enters an icon's area
-				link.addEventListener('mouseenter', (e) => {
-					const tooltipText = link.dataset.tooltip;
-					if (!tooltipText) return;
-
-					// Set the text and show the tooltip to calculate its size
-					universalTooltip.textContent = tooltipText;
-					universalTooltip.classList.remove('opacity-0');
-
-					// Get the position of the icon on the screen
-					const iconRect = link.getBoundingClientRect();
-					
-					// Calculate the correct top and left position
-					const top = iconRect.top - universalTooltip.offsetHeight - 1; // 1px gap above
-					const left = iconRect.left + (iconRect.width / 2) - (universalTooltip.offsetWidth / 2);
-
-					// Apply the position
-					universalTooltip.style.top = `${top}px`;
-					universalTooltip.style.left = `${left}px`;
-				});
-
-				// When the mouse leaves, hide the tooltip
-				link.addEventListener('mouseleave', () => {
-					universalTooltip.classList.add('opacity-0');
-				});
-			});
-		}
 
         let app, auth, db;
         try { app = initializeApp(firebaseConfig); auth = getAuth(app); db = getFirestore(app); } catch (e) { console.error("Firebase init failed.", e); }
         
         function showView(viewName) {
             document.body.style.overflow = ['shinyDex', 'shinyHall', 'staffPanel'].includes(viewName) ? 'auto' : 'hidden';
-            Object.values(appViews).forEach(v => v.classList.add('hidden'));
+            Object.values(appViews).forEach(v => { if (v) v.classList.add('hidden'); });
             if (appViews[viewName]) {
                 appViews[viewName].classList.remove('hidden');
                 if (viewName === 'landing') appViews[viewName].classList.add('flex');
@@ -425,12 +386,6 @@
                     userPermissions = new Set(rankSnap.data().permissions || []);
                 }
             }
-            updateUIVisibility();
-        }
-
-        function updateUIVisibility() {
-            // This function is now simpler as most visibility is contextual.
-            // It could be used in the future if more global UI elements are added.
         }
         
         async function loadTeamData() {
@@ -481,42 +436,31 @@
             document.querySelectorAll('.dex-entry').forEach(e => e.addEventListener('click', (ev) => { if (!discordUser) { handleLogin(); return; } const id = parseInt(ev.currentTarget.dataset.id); if (userDexData.has(id) || userPendingData.has(id)) return; const p = pokemonData.find(pk => pk.id === id); if (p) openVerificationModal(p); }));
         }
 		async function openVerificationModal(p) {
-			// Standard setup
 			verifyPokemonIdInput.value = p.id;
 			verifyPokemonNameEl.textContent = `Verify: ${p.name}`;
 			verifyPokemonSpriteEl.src = p.sprite;
 			verifyDiscordUserInput.value = discordUser.username;
 			verificationForm.reset();
-
-			// Get the new UI elements for the image preview and uploader
 			const previewContainer = document.getElementById('character-image-preview-container');
 			const uploadContainer = document.getElementById('character-image-upload-container');
 			const previewImg = document.getElementById('character-image-preview');
 			const fileInput = document.getElementById('verify-character-image');
-
-			// Fetch the user's saved image URL from their profile in Firestore
 			const userSnap = await getDoc(doc(db, 'users', currentUser.uid));
 			const savedImageUrl = userSnap.exists() ? userSnap.data().characterImageUrl : null;
-
 			if (savedImageUrl) {
-				// If a URL exists, show the preview and hide the uploader
 				previewImg.src = savedImageUrl;
 				previewContainer.classList.remove('hidden');
 				uploadContainer.classList.add('hidden');
-				fileInput.required = false; // The input is not required if an image is already saved
+				fileInput.required = false;
 			} else {
-				// If no URL exists, show the uploader and hide the preview
 				previewContainer.classList.add('hidden');
 				uploadContainer.classList.remove('hidden');
-				fileInput.required = true; // The input is required for the first submission
+				fileInput.required = true;
 			}
-
-			// Show the main modal
 			verificationModal.classList.remove('hidden');
 		}
         function closeVerificationModal() { verificationModal.classList.add('hidden'); }
 		
-        // This helper function converts a file to a Base64 string, which is needed to send it to the Google Script.
 		const toBase64 = file => new Promise((resolve, reject) => {
 			const reader = new FileReader();
 			reader.readAsDataURL(file);
@@ -529,17 +473,12 @@
 			const btn = e.target.querySelector('button[type="submit"]');
 			const fileInput = e.target['verify-character-image'];
 			const file = fileInput.files[0];
-
 			btn.disabled = true;
 			btn.textContent = 'Processing...';
-
 			const GOOGLE_SCRIPT_URL = "##GOOGLE_APPS_SCRIPT_URL##";
-
 			try {
 				let finalImageUrl;
-
 				if (file) {
-					// A new image was selected, so we run the full upload process.
 					btn.textContent = 'Uploading...';
 					const base64File = await toBase64(file);
 					const response = await fetch(GOOGLE_SCRIPT_URL, {
@@ -547,28 +486,18 @@
 						body: JSON.stringify({ filename: file.name, mimeType: file.type, fileContent: base64File }),
 						headers: { 'Content-Type': 'text/plain;charset=utf-8' },
 					});
-
 					if (!response.ok) throw new Error('Image upload failed on the server.');
 					const data = await response.json();
 					if (data.error) throw new Error(data.error);
-
 					finalImageUrl = data.url;
-
-					// IMPORTANT: Save the new image URL to the user's profile for next time.
 					const userRef = doc(db, 'users', currentUser.uid);
 					await updateDoc(userRef, { characterImageUrl: finalImageUrl });
-
 				} else {
-					// No new image was selected; use the one already saved on their profile.
 					const userSnap = await getDoc(doc(db, 'users', currentUser.uid));
 					const savedUrl = userSnap.exists() ? userSnap.data().characterImageUrl : null;
-					if (!savedUrl) {
-						throw new Error("No character image has been selected or saved. Please upload one.");
-					}
+					if (!savedUrl) throw new Error("No character image has been selected or saved. Please upload one.");
 					finalImageUrl = savedUrl;
 				}
-
-				// Now, create the verification request with the correct image URL.
 				const pokemonId = parseInt(verifyPokemonIdInput.value);
 				const requestData = {
 					userId: currentUser.uid,
@@ -577,18 +506,16 @@
 					pokemonId: pokemonId,
 					pokemonName: pokemonData.find(p => p.id === pokemonId).name,
 					inGameName: e.target['verify-ingame-name'].value,
-					characterImageUrl: finalImageUrl, // Use the final determined URL
+					characterImageUrl: finalImageUrl,
 					dateCaptured: e.target['verify-date'].value,
 					encounters: e.target['verify-encounters'].value || null,
 					status: 'pending',
 					submittedAt: serverTimestamp()
 				};
-
 				await addDoc(collection(db, "verification-requests"), requestData);
 				userPendingData.add(pokemonId);
 				renderDexGrid();
 				closeVerificationModal();
-
 			} catch (error) {
 				console.error("Upload and submit error:", error);
 				alert(`Failed to submit verification: ${error.message}`);
@@ -599,54 +526,24 @@
 		}
 
 		async function loadAndRenderShinyHall() {
-			// Fetch all approved shinies once and store them to avoid re-fetching on every search.
 			if (!window.shinyHallCache) {
 				const q = query(collection(db, "verification-requests"), where("status", "==", "approved"));
 				const snapshot = await getDocs(q);
 				window.shinyHallCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 			}
-
 			const grid = document.getElementById('shiny-hall-grid');
 			const searchTerm = document.getElementById('shiny-hall-search').value.toLowerCase();
-
-			// Filter the cached data based on the search term.
-			const filteredEntries = window.shinyHallCache.filter(e => 
-				e.discordUsername.toLowerCase().includes(searchTerm) || e.inGameName.toLowerCase().includes(searchTerm)
-			);
-
+			const filteredEntries = window.shinyHallCache.filter(e => e.discordUsername.toLowerCase().includes(searchTerm) || e.inGameName.toLowerCase().includes(searchTerm));
 			if (filteredEntries.length === 0) {
 				grid.innerHTML = `<p class="col-span-full text-center text-gray-400">No matching entries found.</p>`;
 				return;
 			}
-
 			grid.innerHTML = filteredEntries.map(e => {
 				const sprite = pokemonData.find(p => p.id === e.pokemonId)?.sprite || '';
-
-				// Conditionally add a delete button if the logged-in user is a Site Master.
-				const deleteButton = isSiteMaster ? 
-					`<button class="delete-hall-entry-btn absolute top-2 right-2 text-gray-500 hover:text-red-500 transition-colors" data-id="${e.id}" data-userid="${e.userId}" data-pokemonid="${e.pokemonId}">
-						<i class="fa-solid fa-trash-can"></i>
-					</button>` : '';
-
-				return `
-					<div class="hall-entry relative">
-						${deleteButton}
-						<img src="${sprite}" class="pokemon-sprite">
-						<img src="${e.characterImageUrl}" class="character-image" onerror="this.src='https://placehold.co/80x80/374151/9ca3af?text=N/A'">
-						<h3 class="text-xl font-bold mt-2">${e.pokemonName}</h3>
-						<p class="text-sm font-semibold text-gray-300">${e.inGameName}</p>
-						<p class="text-xs text-gray-500">by ${e.discordUsername}</p>
-						<div class="bg-gray-700/50 rounded-md p-3 w-full mt-4 text-xs text-gray-300 space-y-1">
-							<p><strong>Date:</strong> ${e.dateCaptured}</p>
-							${e.encounters ? `<strong>Encounters:</strong> ${e.encounters}` : ''}
-						</div>
-					</div>`;
+				const deleteButton = isSiteMaster ? `<button class="delete-hall-entry-btn absolute top-2 right-2 text-gray-500 hover:text-red-500 transition-colors" data-id="${e.id}" data-userid="${e.userId}" data-pokemonid="${e.pokemonId}"><i class="fa-solid fa-trash-can"></i></button>` : '';
+				return `<div class="hall-entry relative">${deleteButton}<img src="${sprite}" class="pokemon-sprite"><img src="${e.characterImageUrl}" class="character-image" onerror="this.src='https://placehold.co/80x80/374151/9ca3af?text=N/A'"><h3 class="text-xl font-bold mt-2">${e.pokemonName}</h3><p class="text-sm font-semibold text-gray-300">${e.inGameName}</p><p class="text-xs text-gray-500">by ${e.discordUsername}</p><div class="bg-gray-700/50 rounded-md p-3 w-full mt-4 text-xs text-gray-300 space-y-1"><p><strong>Date:</strong> ${e.dateCaptured}</p>${e.encounters ? `<strong>Encounters:</strong> ${e.encounters}` : ''}</div></div>`;
 			}).join('');
-
-			// Attach event listeners to the new delete buttons.
-			document.querySelectorAll('.delete-hall-entry-btn').forEach(btn => {
-				btn.addEventListener('click', handleHallEntryDelete);
-			});
+			document.querySelectorAll('.delete-hall-entry-btn').forEach(btn => btn.addEventListener('click', handleHallEntryDelete));
 		}
 
         async function loadAndRenderVerificationQueue() {
@@ -655,7 +552,7 @@
             const verificationQueueEl = document.getElementById('verification-queue');
             if (snapshot.empty) { verificationQueueEl.innerHTML = `<p class="text-center text-gray-400">No pending verifications.</p>`; return; }
             verificationQueueEl.innerHTML = snapshot.docs.map(d => { const e = d.data();
-                return `<div class="verification-card grid grid-cols-1 md:grid-cols-3 gap-4 items-center" id="req-${d.id}"><div class="flex items-center gap-4"><img src="${pokemonData.find(p => p.id === e.pokemonId)?.sprite}" class="w-16 h-16 bg-gray-700 rounded-md"><div class="text-sm"><p class="font-bold text-lg">${e.pokemonName}</p><p class="text-gray-400">${e.inGameName}</p><p class="text-gray-500">${e.discordUsername}</p></div></div><div class="text-sm text-gray-300"><p><strong>Date:</strong> ${e.dateCaptured}</p><p><strong>Encounters:</strong> ${e.encounters || 'N/A'}</p><p><strong>Character:</strong> ${e.characterImage}</p></div><div class="flex gap-2 justify-end"><button data-id="${d.id}" data-action="approve" class="action-btn bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Approve</button><button data-id="${d.id}" data-action="deny" class="action-btn bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">Deny</button></div></div>`;
+                return `<div class="verification-card grid grid-cols-1 md:grid-cols-3 gap-4 items-center" id="req-${d.id}"><div class="flex items-center gap-4"><img src="${pokemonData.find(p => p.id === e.pokemonId)?.sprite}" class="w-16 h-16 bg-gray-700 rounded-md"><div class="text-sm"><p class="font-bold text-lg">${e.pokemonName}</p><p class="text-gray-400">${e.inGameName}</p><p class="text-gray-500">${e.discordUsername}</p></div></div><div class="text-sm text-gray-300"><p><strong>Date:</strong> ${e.dateCaptured}</p><p><strong>Encounters:</strong> ${e.encounters || 'N/A'}</p><p><strong>Character Image:</strong> <a href="${e.characterImageUrl}" target="_blank" class="text-blue-400 hover:underline">View</a></p></div><div class="flex gap-2 justify-end"><button data-id="${d.id}" data-action="approve" class="action-btn bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Approve</button><button data-id="${d.id}" data-action="deny" class="action-btn bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">Deny</button></div></div>`;
             }).join('');
             document.querySelectorAll('#verification-queue .action-btn').forEach(b => b.addEventListener('click', handleVerificationAction));
         }
@@ -683,41 +580,21 @@
         }
 		
 		async function handleHallEntryDelete(e) {
-			if (!isSiteMaster) return; // Security check
-
+			if (!isSiteMaster) return;
 			const btn = e.currentTarget;
 			const { id, userid, pokemonid } = btn.dataset;
-
-			if (!confirm("Are you sure you want to permanently delete this Hall of Fame entry? This will also remove it from the user's Shiny Dex.")) {
-				return;
-			}
-
+			if (!confirm("Are you sure you want to permanently delete this Hall of Fame entry? This will also remove it from the user's Shiny Dex.")) return;
 			btn.disabled = true;
 			btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
-
 			try {
-				// Use a batch write to perform multiple operations at once.
 				const batch = writeBatch(db);
-
-				// 1. Delete the main entry from the 'verification-requests' collection.
 				const hallEntryRef = doc(db, "verification-requests", id);
 				batch.delete(hallEntryRef);
-
-				// 2. Remove the shiny from the user's personal dex.
 				const userDexRef = doc(db, `users/${userid}/dex/shiny-dex`);
-				batch.update(userDexRef, {
-					captured: arrayRemove(parseInt(pokemonid))
-				});
-
-				// Commit both operations.
+				batch.update(userDexRef, { captured: arrayRemove(parseInt(pokemonid)) });
 				await batch.commit();
-
-				// Remove the entry from the UI without a full reload.
 				btn.closest('.hall-entry').remove();
-
-				// Update the local cache to reflect the deletion.
 				window.shinyHallCache = window.shinyHallCache.filter(entry => entry.id !== id);
-
 			} catch (error) {
 				console.error("Failed to delete Hall of Fame entry:", error);
 				alert("An error occurred. The entry could not be deleted.");
@@ -744,9 +621,7 @@
                 if (!firstVisibleTab) firstVisibleTab = 'ranks';
                 if (!isMasterPanelLoaded) {
                     const permsContainer = document.getElementById('permissions-container');
-                    if(permsContainer) {
-                        permsContainer.innerHTML = ALL_PERMISSIONS.map(p => `<div><input type="checkbox" id="perm-${p}" name="permissions" value="${p}" class="mr-2"><label for="perm-${p}">${p.replace(/_/g, ' ')}</label></div>`).join('');
-                    }
+                    if(permsContainer) permsContainer.innerHTML = ALL_PERMISSIONS.map(p => `<div><input type="checkbox" id="perm-${p}" name="permissions" value="${p}" class="mr-2"><label for="perm-${p}">${p.replace(/_/g, ' ')}</label></div>`).join('');
                     loadAllRanks();
                     loadAllUsers();
                     isMasterPanelLoaded = true;
@@ -887,7 +762,6 @@
 		const shinyHallSearchInput = document.getElementById('shiny-hall-search');
 		if (shinyHallSearchInput) {
 			shinyHallSearchInput.addEventListener('input', () => {
-				// We call the existing function, which will now use the search value to filter.
 				loadAndRenderShinyHall();
 			});
 		}
@@ -898,8 +772,7 @@
 				document.getElementById('character-image-preview-container').classList.add('hidden');
 				const uploadContainer = document.getElementById('character-image-upload-container');
 				uploadContainer.classList.remove('hidden');
-				const fileInput = document.getElementById('verify-character-image');
-				fileInput.required = true; // Make the input required again since they want to change it
+				document.getElementById('verify-character-image').required = true;
 			});
 		}
 
