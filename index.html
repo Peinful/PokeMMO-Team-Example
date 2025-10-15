@@ -219,6 +219,53 @@
                 <div id="user-list" class="mt-4 space-y-2"></div>
             </div>
         </main>
+		<main>
+			<div class="flex border-b border-gray-700 mb-6">
+				<div class="tabs">
+					<button id="bounties-tab-btn" class="tab-btn py-2 px-4 rounded-t-lg hidden" data-tab="bounties">Bounties</button>
+				</div>
+			</div>
+
+			<div id="bounties-tab" class="tab-content hidden">
+				<h2 class="text-2xl font-semibold mb-4">Manage Bounties</h2>
+				<div id="bounties-list" class="space-y-4"></div>
+
+				<form id="bounty-form" class="mt-8 bg-gray-800 p-4 rounded-lg space-y-4">
+					<h3 class="text-xl font-bold">Create/Edit Bounty</h3>
+					<input type="hidden" id="bounty-id">
+					<div>
+						<label for="bounty-name" class="block text-sm font-medium text-gray-300">Bounty Name</label>
+						<input type="text" id="bounty-name" placeholder="e.g., OPERATION NEST SWEEP" class="w-full bg-gray-700 p-2 rounded-md mt-1" required>
+					</div>
+					<div>
+						<label for="bounty-scoring" class="block text-sm font-medium text-gray-300">Scoring Method</label>
+						<input type="text" id="bounty-scoring" placeholder="e.g., Sum of IVs + Species Bonus..." class="w-full bg-gray-700 p-2 rounded-md mt-1" required>
+					</div>
+					<div>
+						<label class="block text-sm font-medium text-gray-300">Valid Pokemon Entries</label>
+						<div id="bounty-pokemon-entries" class="space-y-2 mt-1"></div>
+						<button type="button" id="add-pokemon-entry-btn" class="text-sm text-blue-400 hover:text-blue-300 mt-2">+ Add Pokemon</button>
+					</div>
+					<div>
+						<label class="block text-sm font-medium text-gray-300">Nature Bonuses</label>
+						<div id="bounty-nature-bonuses" class="space-y-2 mt-1"></div>
+						<button type="button" id="add-nature-bonus-btn" class="text-sm text-blue-400 hover:text-blue-300 mt-2">+ Add Nature</button>
+					</div>
+					<div>
+						<label for="bounty-prize" class="block text-sm font-medium text-gray-300">Prizes (one per line)</label>
+						<textarea id="bounty-prize" rows="3" placeholder="1st Place: $1,000,000&#10;2nd Place: $500,000" class="w-full bg-gray-700 p-2 rounded-md mt-1" required></textarea>
+					</div>
+					<div class="flex items-center">
+						<input type="checkbox" id="bounty-is-active" class="h-4 w-4 rounded discord-btn">
+						<label for="bounty-is-active" class="ml-2 block text-sm text-gray-300">Bounty is Active</label>
+					</div>
+					<div>
+						<button type="submit" class="discord-btn py-2 px-4 rounded-lg">Save Bounty</button>
+						<button type="button" id="clear-bounty-form" class="bg-gray-600 py-2 px-4 rounded-lg ml-2">Clear</button>
+					</div>
+				</form>
+			</div>
+		</main>
     </div>
     
     <div id="verification-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-[60]">
@@ -276,7 +323,7 @@
         const DISCORD_CLIENT_ID = "##DISCORD_CLIENT_ID##"; 
         const TEAM_ID = "crow-syndicate";
         const POKEMON_COUNT = 649;
-        const ALL_PERMISSIONS = ['can_verify_shinies', 'can_manage_recruitment', 'can_edit_pages', 'can_manage_bounties'];
+		const ALL_PERMISSIONS = ['can_verify_shinies', 'can_manage_recruitment', 'can_edit_pages', 'can_manage_bounties'];
 
 		const pageContents = {
 			'about-us': `
@@ -478,17 +525,47 @@
 					await renderStaffPanel();
 					showView('staffPanel');
 				},
-				'members': () => { if (discordUser) { loadTeamData(); showView('dashboard'); } else { handleLogin(); } }
+				'members': () => { if (discordUser) { loadTeamData(); showView('dashboard'); } else { handleLogin(); } },
+				// Add a handler for the new dynamic bounties page
+				'bounties': async () => {
+					pageTitleEl.textContent = "Active Bounties";
+					const q = query(collection(db, "bounties"), where("isActive", "==", true));
+					const snapshot = await getDocs(q);
+					if (snapshot.empty) {
+						pageContentEl.innerHTML = `<p class="text-gray-400">There are currently no active bounties.</p>`;
+					} else {
+						pageContentEl.innerHTML = snapshot.docs.map(doc => {
+							const b = doc.data();
+							return `
+							<div class="text-left max-w-3xl mx-auto space-y-4 bg-gray-900 p-6 rounded-lg mb-6">
+								<h3 class="text-2xl font-bold text-yellow-400">${b.name}</h3>
+								<p class="text-gray-400"><strong class="text-gray-200">Scoring:</strong> ${b.scoringMethod}</p>
+								<div>
+									<strong class="text-gray-200">Valid Entries:</strong>
+									<ul class="list-disc list-inside text-gray-400">${b.validEntries.map(e => `<li>${e.name}: <span class="font-semibold ${e.points > 0 ? 'text-green-400' : 'text-red-400'}">${e.points > 0 ? '+' : ''}${e.points}</span></li>`).join('')}</ul>
+								</div>
+								 <div>
+									<strong class="text-gray-200">Nature Bonus:</strong>
+									<ul class="list-disc list-inside text-gray-400">${b.natureBonuses.map(n => `<li>${n.name}: <span class="font-semibold ${n.points > 0 ? 'text-green-400' : 'text-red-400'}">${n.points > 0 ? '+' : ''}${n.points}</span></li>`).join('')}</ul>
+								</div>
+								<div>
+									<strong class="text-gray-200">Prizes:</strong>
+									<ul class="list-disc list-inside text-gray-400">${b.prizes.map(p => `<li>${p}</li>`).join('')}</ul>
+								</div>
+							</div>
+							`;
+						}).join('');
+					}
+					showView('page');
+				},
 			};
 
 			if (handlers[page]) {
 				handlers[page]();
 			} else {
-				// This 'else' block now handles all our new custom pages
 				const link = document.querySelector(`a[data-page="${page}"]`);
 				if (link) {
 					pageTitleEl.textContent = link.dataset.tooltip;
-					// Check if we have custom content for this page, otherwise show the default message
 					pageContentEl.innerHTML = pageContents[page] || `<p>Content for the ${link.dataset.tooltip} section is coming soon!</p>`;
 					showView('page');
 				}
@@ -673,49 +750,83 @@
 		}
         
         async function renderStaffPanel() {
-            const tabs = { verifications: document.getElementById('verifications-tab-btn'), ranks: document.getElementById('ranks-tab-btn'), users: document.getElementById('users-tab-btn') };
-            const tabContents = { verifications: document.getElementById('verifications-tab'), ranks: document.getElementById('ranks-tab'), users: document.getElementById('users-tab') };
-            Object.values(tabs).forEach(t => t.classList.add('hidden'));
-            Object.values(tabContents).forEach(tc => tc.classList.add('hidden'));
-            let firstVisibleTab = null;
-            if (userPermissions.has('can_verify_shinies') || isSiteMaster) {
-                tabs.verifications.classList.remove('hidden');
-                if (!firstVisibleTab) firstVisibleTab = 'verifications';
-                if (!isDexLoaded) await fetchPokemonData();
-                await loadAndRenderVerificationQueue();
-            }
-            if (isSiteMaster) {
-                tabs.ranks.classList.remove('hidden');
-                tabs.users.classList.remove('hidden');
-                if (!firstVisibleTab) firstVisibleTab = 'ranks';
-                if (!isMasterPanelLoaded) {
-                    const permsContainer = document.getElementById('permissions-container');
-                    if(permsContainer) permsContainer.innerHTML = ALL_PERMISSIONS.map(p => `<div><input type="checkbox" id="perm-${p}" name="permissions" value="${p}" class="mr-2"><label for="perm-${p}">${p.replace(/_/g, ' ')}</label></div>`).join('');
-                    loadAllRanks();
-                    loadAllUsers();
-                    isMasterPanelLoaded = true;
-                }
-            }
-            if (firstVisibleTab) {
-                Object.values(tabs).forEach(t => t.classList.remove('active'));
-                tabs[firstVisibleTab].classList.add('active');
-                tabContents[firstVisibleTab].classList.remove('hidden');
-            }
-            if (!document.getElementById('staff-panel-view').dataset.listenersAttached) {
-                Object.values(tabs).forEach(button => {
-                    if(button) {
-                        button.addEventListener('click', (e) => {
-                            const tabId = e.target.dataset.tab;
-                            Object.values(tabs).forEach(t => t.classList.remove('active'));
-                            e.target.classList.add('active');
-                            Object.values(tabContents).forEach(tc => tc.classList.add('hidden'));
-                            tabContents[tabId].classList.remove('hidden');
-                        });
-                    }
-                });
-                document.getElementById('staff-panel-view').dataset.listenersAttached = 'true';
-            }
-        }
+			// --- Get references to all possible tabs and content areas ---
+			const tabs = {
+				verifications: document.getElementById('verifications-tab-btn'),
+				ranks: document.getElementById('ranks-tab-btn'),
+				users: document.getElementById('users-tab-btn'),
+				bounties: document.getElementById('bounties-tab-btn') // Bounties tab button
+			};
+			const tabContents = {
+				verifications: document.getElementById('verifications-tab'),
+				ranks: document.getElementById('ranks-tab'),
+				users: document.getElementById('users-tab'),
+				bounties: document.getElementById('bounties-tab') // Bounties content area
+			};
+
+			// --- Hide everything initially to start clean ---
+			Object.values(tabs).forEach(t => t.classList.add('hidden'));
+			Object.values(tabContents).forEach(tc => tc.classList.add('hidden'));
+
+			let firstVisibleTab = null;
+
+			// --- Conditionally show tabs based on permissions ---
+
+			// Show Verifications tab for verifiers or Site Masters
+			if (userPermissions.has('can_verify_shinies') || isSiteMaster) {
+				tabs.verifications.classList.remove('hidden');
+				if (!firstVisibleTab) firstVisibleTab = 'verifications';
+				if (!isDexLoaded) await fetchPokemonData();
+				await loadAndRenderVerificationQueue();
+			}
+
+			// Show Bounties tab for bounty managers or Site Masters
+			if (userPermissions.has('can_manage_bounties') || isSiteMaster) {
+				tabs.bounties.classList.remove('hidden');
+				if (!firstVisibleTab) firstVisibleTab = 'bounties';
+				loadBountiesManagement();
+			}
+			
+			// Show Rank and User management tabs only for Site Masters
+			if (isSiteMaster) {
+				tabs.ranks.classList.remove('hidden');
+				tabs.users.classList.remove('hidden');
+				if (!firstVisibleTab) firstVisibleTab = 'ranks'; // Set default if no other tabs are visible
+				if (!isMasterPanelLoaded) {
+					const permsContainer = document.getElementById('permissions-container');
+					if(permsContainer) {
+						permsContainer.innerHTML = ALL_PERMISSIONS.map(p => `<div><input type="checkbox" id="perm-${p}" name="permissions" value="${p}" class="mr-2"><label for="perm-${p}">${p.replace(/_/g, ' ')}</label></div>`).join('');
+					}
+					loadAllRanks();
+					loadAllUsers();
+					isMasterPanelLoaded = true;
+				}
+			}
+			
+			// --- Activate the first available tab ---
+			if (firstVisibleTab) {
+				Object.values(tabs).forEach(t => t.classList.remove('active'));
+				tabs[firstVisibleTab].classList.add('active');
+				tabContents[firstVisibleTab].classList.remove('hidden');
+			}
+
+			// --- Attach tab-switching listeners only once ---
+			if (!document.getElementById('staff-panel-view').dataset.listenersAttached) {
+				Object.values(tabs).forEach(button => {
+					if(button) {
+						button.addEventListener('click', (e) => {
+							const tabId = e.target.dataset.tab;
+							Object.values(tabs).forEach(t => t.classList.remove('active'));
+							e.target.classList.add('active');
+							Object.values(tabContents).forEach(tc => tc.classList.add('hidden'));
+							tabContents[tabId].classList.remove('hidden');
+						});
+					}
+				});
+				document.getElementById('staff-panel-view').dataset.listenersAttached = 'true';
+			}
+		}
+		
         async function loadAllRanks() {
             const ranksListEl = document.getElementById('ranks-list');
             const snapshot = await getDocs(collection(db, 'ranks'));
@@ -786,6 +897,110 @@
                 btn.textContent = "Join Crow Syndicate";
             }
         }
+		
+		function addDynamicEntry(containerId, placeholder1, placeholder2) {
+			const container = document.getElementById(containerId);
+			const entryDiv = document.createElement('div');
+			entryDiv.className = 'flex items-center gap-2';
+			entryDiv.innerHTML = `
+				<input type="text" placeholder="${placeholder1}" class="w-1/2 bg-gray-700 p-1 rounded-md dynamic-key" required>
+				<input type="number" placeholder="${placeholder2}" class="w-1/3 bg-gray-700 p-1 rounded-md dynamic-value" required>
+				<button type="button" class="remove-entry-btn text-red-500 hover:text-red-400">&times;</button>
+			`;
+			container.appendChild(entryDiv);
+			entryDiv.querySelector('.remove-entry-btn').addEventListener('click', () => entryDiv.remove());
+		}
+
+		async function loadBountiesManagement() {
+			const addPokemonBtn = document.getElementById('add-pokemon-entry-btn');
+			const addNatureBtn = document.getElementById('add-nature-bonus-btn');
+			const bountyForm = document.getElementById('bounty-form');
+			const clearBountyFormBtn = document.getElementById('clear-bounty-form');
+
+			addPokemonBtn.onclick = () => addDynamicEntry('bounty-pokemon-entries', 'Pokemon Name', 'Points');
+			addNatureBtn.onclick = () => addDynamicEntry('bounty-nature-bonuses', 'Nature', 'Points');
+			clearBountyFormBtn.onclick = () => {
+				bountyForm.reset();
+				document.getElementById('bounty-id').value = '';
+				document.getElementById('bounty-pokemon-entries').innerHTML = '';
+				document.getElementById('bounty-nature-bonuses').innerHTML = '';
+			};
+
+			bountyForm.addEventListener('submit', async (e) => {
+				e.preventDefault();
+				const id = document.getElementById('bounty-id').value;
+				const bountyData = {
+					name: document.getElementById('bounty-name').value,
+					scoringMethod: document.getElementById('bounty-scoring').value,
+					prizes: document.getElementById('bounty-prize').value.split('\n').filter(p => p),
+					isActive: document.getElementById('bounty-is-active').checked,
+					validEntries: Array.from(document.querySelectorAll('#bounty-pokemon-entries .flex')).map(div => ({ name: div.querySelector('.dynamic-key').value, points: parseInt(div.querySelector('.dynamic-value').value) })),
+					natureBonuses: Array.from(document.querySelectorAll('#bounty-nature-bonuses .flex')).map(div => ({ name: div.querySelector('.dynamic-key').value, points: parseInt(div.querySelector('.dynamic-value').value) })),
+					createdAt: serverTimestamp(),
+				};
+				if (id) {
+					await setDoc(doc(db, 'bounties', id), bountyData, { merge: true });
+				} else {
+					await addDoc(collection(db, 'bounties'), bountyData);
+				}
+				clearBountyFormBtn.click();
+				renderBountiesList();
+			});
+
+			renderBountiesList();
+		}
+
+		async function renderBountiesList() {
+			const listEl = document.getElementById('bounties-list');
+			const snapshot = await getDocs(query(collection(db, 'bounties')));
+			const bounties = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+			listEl.innerHTML = bounties.map(b => `
+				<div class="bg-gray-700 p-3 rounded-md flex justify-between items-center">
+					<div>
+						<p class="font-bold">${b.name} <span class="text-xs font-normal ${b.isActive ? 'text-green-400' : 'text-gray-500'}">${b.isActive ? 'Active' : 'Inactive'}</span></p>
+					</div>
+					<div class="space-x-2">
+						<button class="edit-bounty-btn text-blue-400 hover:text-blue-300" data-id="${b.id}">Edit</button>
+						<button class="delete-bounty-btn text-red-400 hover:text-red-300" data-id="${b.id}">Delete</button>
+					</div>
+				</div>
+			`).join('');
+
+			listEl.querySelectorAll('.delete-bounty-btn').forEach(btn => btn.addEventListener('click', async (e) => {
+				if (confirm('Are you sure you want to delete this bounty?')) {
+					await deleteDoc(doc(db, 'bounties', e.target.dataset.id));
+					renderBountiesList();
+				}
+			}));
+
+			listEl.querySelectorAll('.edit-bounty-btn').forEach(btn => btn.addEventListener('click', (e) => {
+				const bounty = bounties.find(b => b.id === e.target.dataset.id);
+				if (!bounty) return;
+				document.getElementById('bounty-id').value = bounty.id;
+				document.getElementById('bounty-name').value = bounty.name;
+				document.getElementById('bounty-scoring').value = bounty.scoringMethod;
+				document.getElementById('bounty-prize').value = (bounty.prizes || []).join('\n');
+				document.getElementById('bounty-is-active').checked = bounty.isActive;
+
+				const pokemonContainer = document.getElementById('bounty-pokemon-entries');
+				pokemonContainer.innerHTML = '';
+				(bounty.validEntries || []).forEach(entry => {
+					addDynamicEntry('bounty-pokemon-entries', 'Pokemon Name', 'Points');
+					const lastEntry = pokemonContainer.lastElementChild;
+					lastEntry.querySelector('.dynamic-key').value = entry.name;
+					lastEntry.querySelector('.dynamic-value').value = entry.points;
+				});
+				const natureContainer = document.getElementById('bounty-nature-bonuses');
+				natureContainer.innerHTML = '';
+				(bounty.natureBonuses || []).forEach(bonus => {
+					addDynamicEntry('bounty-nature-bonuses', 'Nature', 'Points');
+					const lastEntry = natureContainer.lastElementChild;
+					lastEntry.querySelector('.dynamic-key').value = bonus.name;
+					lastEntry.querySelector('.dynamic-value').value = bonus.points;
+				});
+			}));
+		}
 
         function renderAuthButtons() {
             if (discordUser) {
