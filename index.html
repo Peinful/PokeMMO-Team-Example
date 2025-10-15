@@ -258,7 +258,6 @@
 		const verifyPokemonIdInput = document.getElementById('verify-pokemon-id'), verifyPokemonNameEl = document.getElementById('verify-pokemon-name');
 		const verifyPokemonSpriteEl = document.getElementById('verify-pokemon-sprite'), verifyDiscordUserInput = document.getElementById('verify-discord-user');
 		const pageTitleEl = document.getElementById('page-title'), pageContentEl = document.getElementById('page-content');
-		const joinTeamBtn = document.getElementById('join-team-btn'); // REMOVED: logoutBtn
 		const userProfileEl = document.getElementById('user-profile'), teamNameEl = document.getElementById('team-name'), teamMembersEl = document.getElementById('team-members');
 		const joinTeamContainer = document.getElementById('join-team-container');
 
@@ -571,10 +570,15 @@
 				joinTeamContainer.classList.toggle('hidden', isMember);
 			}
 		}
-		 async function handleJoinTeam() {
+		async function handleJoinTeam() {
 			if (!discordUser) return;
-			joinTeamBtn.disabled = true;
-			joinTeamBtn.textContent = "Joining...";
+			
+			// Find the button inside the function
+			const btn = document.getElementById('join-team-btn');
+			if (!btn) return; // Safety check
+
+			btn.disabled = true;
+			btn.textContent = "Joining...";
 			const teamRef = doc(db, 'teams', TEAM_ID);
 			const newMember = { discordId: discordUser.id, username: discordUser.username, avatar: discordUser.avatar };
 			try {
@@ -584,8 +588,8 @@
 				console.error("Failed to join team:", error);
 				alert("There was an error trying to join the team.");
 			} finally {
-				joinTeamBtn.disabled = false;
-				joinTeamBtn.textContent = "Join Crow Syndicate";
+				btn.disabled = false;
+				btn.textContent = "Join Crow Syndicate";
 			}
 		}
 
@@ -624,7 +628,10 @@
 		backBtns.forEach(btn => btn.addEventListener('click', () => { showView('landing'); }));
 		verificationForm.addEventListener('submit', handleVerificationSubmit);
 		cancelVerificationBtn.addEventListener('click', closeVerificationModal);
-		joinTeamBtn.addEventListener('click', handleJoinTeam); // REMOVED: logoutBtn listener
+		const joinTeamBtn = document.getElementById('join-team-btn');
+		if (joinTeamBtn) {
+			joinTeamBtn.addEventListener('click', handleJoinTeam);
+		}
 
 		showView('loading'); createFlyingCrows(5); initializeAppLogic();
 	</script>
