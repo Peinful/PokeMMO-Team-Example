@@ -18,6 +18,15 @@
         }
         .discord-btn { background-color: #5865F2; transition: background-color 0.3s ease; }
         .discord-btn:hover { background-color: #4752C4; }
+		.discord-username {
+			background-image: linear-gradient(to right, #A1B2FF, #C2A7FF);
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			background-clip: text;
+			text-fill-color: transparent;
+			font-weight: 600; /* semi-bold */
+			text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+		}
         .loader { border-top-color: #5865F2; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -594,27 +603,23 @@
 			if (discordUser) {
 				const avatarUrl = discordUser.avatar ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png` : 'https://cdn.discordapp.com/embed/avatars/0.png';
 				
-				// 1. Create the HTML for the new logout button
 				const logoutButton = `<button id="user-logout-btn" class="ml-4 p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all hover:shadow-lg" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></button>`;
 
-				// 2. Create the Site Master button (same as before)
 				const siteMasterButton = isSiteMaster 
 					? `<button id="sitemaster-btn" class="ml-2 p-2 discord-btn text-white rounded-lg transition-all hover:shadow-lg" title="Site Master Panel"><i class="fa-solid fa-pencil"></i></button>`
 					: '';
 
-				// 3. Inject both buttons into the container
+				// UPDATED: Added the new 'discord-username' class to this span
 				authButtonsContainer.innerHTML = `
 					<div class="flex items-center justify-center">
 						<img src="${avatarUrl}" class="w-10 h-10 rounded-full mr-4">
-						<span class="text-lg">${discordUser.username}</span>
+						<span class="text-lg discord-username">${discordUser.username}</span>
 						${logoutButton}
 						${siteMasterButton}
 					</div>`;
 				
-				// 4. Add the event listener for the new logout button
 				document.getElementById('user-logout-btn').addEventListener('click', () => clearSession(false));
 				
-				// Add the event listener for the Site Master button if it exists
 				if (isSiteMaster) {
 					document.getElementById('sitemaster-btn').addEventListener('click', () => showPage('sitemaster-panel'));
 				}
