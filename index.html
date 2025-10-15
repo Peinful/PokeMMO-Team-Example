@@ -319,6 +319,7 @@
         const TEAM_ID = "crow-syndicate";
         const POKEMON_COUNT = 649;
 		const ALL_PERMISSIONS = ['can_verify_shinies', 'can_manage_recruitment', 'can_edit_pages', 'can_manage_bounties'];
+		const NATURES = ["Adamant", "Bashful", "Bold", "Brave", "Calm", "Careful", "Docile", "Gentle", "Hardy", "Hasty", "Impish", "Jolly", "Lax", "Lonely", "Mild", "Modest", "Naive", "Naughty", "Quiet", "Quirky", "Rash", "Relaxed", "Sassy", "Serious", "Timid"];
 
 		const pageContents = {
 			'about-us': `
@@ -892,28 +893,48 @@
                 btn.textContent = "Join Crow Syndicate";
             }
         }
-		
-		function addDynamicEntry(containerId, placeholder1, placeholder2) {
+
+		function addDynamicEntry(containerId, placeholder1, placeholder2, optionsArray = null) {
 			const container = document.getElementById(containerId);
 			const entryDiv = document.createElement('div');
 			entryDiv.className = 'flex items-center gap-2';
+
+			let keyInputHtml;
+			if (optionsArray && optionsArray.length > 0) {
+				// If an array of options is provided, create a dropdown menu
+				keyInputHtml = `<select class="w-1/2 bg-gray-700 p-2 rounded-md dynamic-key" required>
+					<option value="" disabled selected>${placeholder1}</option>
+					${optionsArray.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+				</select>`;
+			} else {
+				// Otherwise, fall back to a regular text input
+				keyInputHtml = `<input type="text" placeholder="${placeholder1}" class="w-1/2 bg-gray-700 p-2 rounded-md dynamic-key" required>`;
+			}
+
 			entryDiv.innerHTML = `
-				<input type="text" placeholder="${placeholder1}" class="w-1/2 bg-gray-700 p-1 rounded-md dynamic-key" required>
-				<input type="number" placeholder="${placeholder2}" class="w-1/3 bg-gray-700 p-1 rounded-md dynamic-value" required>
-				<button type="button" class="remove-entry-btn text-red-500 hover:text-red-400">&times;</button>
+				${keyInputHtml}
+				<input type="number" placeholder="${placeholder2}" class="w-1/3 bg-gray-700 p-2 rounded-md dynamic-value" required>
+				<button type="button" class="remove-entry-btn text-red-500 hover:text-red-400 text-2xl">&times;</button>
 			`;
 			container.appendChild(entryDiv);
 			entryDiv.querySelector('.remove-entry-btn').addEventListener('click', () => entryDiv.remove());
 		}
 
+		// Replace the old loadBountiesManagement function with this one
 		async function loadBountiesManagement() {
+			// Ensure Pokémon data is loaded before setting up the form
+			if (!isDexLoaded) await fetchPokemonData();
+			const pokemonNames = pokemonData.map(p => p.name);
+
 			const addPokemonBtn = document.getElementById('add-pokemon-entry-btn');
 			const addNatureBtn = document.getElementById('add-nature-bonus-btn');
 			const bountyForm = document.getElementById('bounty-form');
 			const clearBountyFormBtn = document.getElementById('clear-bounty-form');
 
-			addPokemonBtn.onclick = () => addDynamicEntry('bounty-pokemon-entries', 'Pokemon Name', 'Points');
-			addNatureBtn.onclick = () => addDynamicEntry('bounty-nature-bonuses', 'Nature', 'Points');
+			// Update button clicks to pass the new data arrays
+			addPokemonBtn.onclick = () => addDynamicEntry('bounty-pokemon-entries', 'Select a Pokémon', 'Points', pokemonNames);
+			addNatureBtn.onclick = () => addDynamicEntry('bounty-nature-bonuses', 'Select a Nature', 'Points', NATURES);
+			
 			clearBountyFormBtn.onclick = () => {
 				bountyForm.reset();
 				document.getElementById('bounty-id').value = '';
@@ -921,26 +942,31 @@
 				document.getElementById('bounty-nature-bonuses').innerHTML = '';
 			};
 
-			bountyForm.addEventListener('submit', async (e) => {
-				e.preventDefault();
-				const id = document.getElementById('bounty-id').value;
-				const bountyData = {
-					name: document.getElementById('bounty-name').value,
-					scoringMethod: document.getElementById('bounty-scoring').value,
-					prizes: document.getElementById('bounty-prize').value.split('\n').filter(p => p),
-					isActive: document.getElementById('bounty-is-active').checked,
-					validEntries: Array.from(document.querySelectorAll('#bounty-pokemon-entries .flex')).map(div => ({ name: div.querySelector('.dynamic-key').value, points: parseInt(div.querySelector('.dynamic-value').value) })),
-					natureBonuses: Array.from(document.querySelectorAll('#bounty-nature-bonuses .flex')).map(div => ({ name: div.querySelector('.dynamic-key').value, points: parseInt(div.querySelector('.dynamic-value').value) })),
-					createdAt: serverTimestamp(),
-				};
-				if (id) {
-					await setDoc(doc(db, 'bounties', id), bountyData, { merge: true });
-				} else {
-					await addDoc(collection(db, 'bounties'), bountyData);
-				}
-				clearBountyFormBtn.click();
-				renderBountiesList();
-			});
+			// The rest of this function is from your existing code, but is included here
+			// to ensure it's up-to-date and correctly referenced.
+			if (!bountyForm.dataset.listenerAttached) {
+				bountyForm.addEventListener('submit', async (e) => {
+					e.preventDefault();
+					const id = document.getElementById('bounty-id').value;
+					const bountyData = {
+						name: document.getElementById('bounty-name').value,
+						scoringMethod: document.getElementById('bounty-scoring').value,
+						prizes: document.getElementById('bounty-prize').value.split('\n').filter(p => p),
+						isActive: document.getElementById('bounty-is-active').checked,
+						validEntries: Array.from(document.querySelectorAll('#bounty-pokemon-entries .flex')).map(div => ({ name: div.querySelector('.dynamic-key').value, points: parseInt(div.querySelector('.dynamic-value').value) })),
+						natureBonuses: Array.from(document.querySelectorAll('#bounty-nature-bonuses .flex')).map(div => ({ name: div.querySelector('.dynamic-key').value, points: parseInt(div.querySelector('.dynamic-value').value) })),
+						createdAt: serverTimestamp(),
+					};
+					if (id) {
+						await setDoc(doc(db, 'bounties', id), bountyData, { merge: true });
+					} else {
+						await addDoc(collection(db, 'bounties'), bountyData);
+					}
+					clearBountyFormBtn.click();
+					renderBountiesList();
+				});
+				bountyForm.dataset.listenerAttached = 'true';
+			}
 
 			renderBountiesList();
 		}
