@@ -76,7 +76,14 @@
 
         .hall-entry { background-color: #374151; border-radius: 0.75rem; padding: 1rem; display: flex; flex-direction: column; align-items: center; }
         .hall-entry .pokemon-sprite { width: 128px; height: 128px; }
-        .hall-entry .character-image { width: 80px; height: 80px; border-radius: 50%; border: 3px solid #4b5563; margin-top: -40px; background-color: #374151; }
+        .hall-entry .character-image {
+			width: 80px;
+			height: 80px;
+			border-radius: 50%;
+			border: 3px solid #4b5563;
+			margin-top: 0.5rem; /* This creates a clean 8px space below the Pokémon */
+			background-color: #374151;
+		}
         .verification-card { background-color: #1F2937; border-radius: 0.5rem; padding: 1rem; border-left: 4px solid #FBBF24; }
         .tab-btn { background-color: #374151; }
         .tab-btn.active { background-color: #5865F2; }
