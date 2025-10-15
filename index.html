@@ -55,40 +55,46 @@
 		.icon-item a::after {
 			content: attr(data-tooltip);
 			position: absolute;
-			bottom: 120%; /* Position it above the icon */
+			bottom: 110%; /* Positions the tooltip just above the icon */
 			left: 50%;
-			transform: translateX(-50%);
-			background-color: #1f2937; /* A dark background */
+			
+			/* This transform now ALSO rotates the tooltip to keep it level */
+			transform: translateX(-50%) rotate(calc(-360deg / 7 * var(--i)));
+
+			background-color: #1f2937;
 			color: #e5e7eb;
 			padding: 0.5rem 0.75rem;
-			border-radius: 0.375rem; /* Rounded corners */
+			border-radius: 0.375rem;
 			font-size: 0.875rem;
 			font-weight: 500;
-			white-space: nowrap; /* Keep the text on one line */
-			pointer-events: none; /* Prevents the tooltip from interfering with the mouse */
-			
-			/* Animation properties */
+			white-space: nowrap;
+			pointer-events: none;
 			opacity: 0;
 			transition: opacity 0.2s ease-in-out;
 			visibility: hidden;
+			z-index: 100; /* Ensures tooltip is on top */
 		}
+
 		/* The small arrow below the tooltip */
 		.icon-item a::before {
 			content: '';
 			position: absolute;
-			bottom: 120%;
-			margin-bottom: -5px; /* Place it just below the main tooltip box */
+			bottom: 110%;
+			margin-bottom: -5px;
 			left: 50%;
-			transform: translateX(-50%);
-			border: 5px solid transparent;
-			border-top-color: #1f2937; /* Match the tooltip background */
-			pointer-events: none;
 			
-			/* Animation properties */
+			/* The arrow also needs to be rotated to stay level */
+			transform: translateX(-50%) rotate(calc(-360deg / 7 * var(--i)));
+
+			border: 5px solid transparent;
+			border-top-color: #1f2937;
+			pointer-events: none;
 			opacity: 0;
 			transition: opacity 0.2s ease-in-out;
 			visibility: hidden;
+			z-index: 100;
 		}
+
 		/* Show the tooltip and arrow on hover */
 		.icon-item a:hover::after,
 		.icon-item a:hover::before {
