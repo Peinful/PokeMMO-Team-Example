@@ -862,10 +862,34 @@
             }
         }
 
-        const userSearchInput = document.getElementById('user-search');
-        if (userSearchInput) {
-            userSearchInput.addEventListener('input', (e) => renderUserList(e.target.value));
-        }
+		const userSearchInput = document.getElementById('user-search');
+		if (userSearchInput) {
+			userSearchInput.addEventListener('input', (e) => renderUserList(e.target.value));
+		}
+
+		const universalTooltip = document.getElementById('universal-tooltip');
+		if (universalTooltip) {
+			iconLinks.forEach(link => {
+				link.addEventListener('mouseenter', (e) => {
+					const tooltipText = link.dataset.tooltip;
+					if (!tooltipText) return;
+
+					universalTooltip.textContent = tooltipText;
+					universalTooltip.classList.remove('opacity-0');
+
+					const iconRect = link.getBoundingClientRect();
+					const top = iconRect.top - universalTooltip.offsetHeight - 5;
+					const left = iconRect.left + (iconRect.width / 2) - (universalTooltip.offsetWidth / 2);
+
+					universalTooltip.style.top = `${top}px`;
+					universalTooltip.style.left = `${left}px`;
+				});
+
+				link.addEventListener('mouseleave', () => {
+					universalTooltip.classList.add('opacity-0');
+				});
+			});
+		}
 
         showView('loading'); createFlyingCrows(5); initializeAppLogic();
     </script>
