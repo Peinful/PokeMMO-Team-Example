@@ -522,31 +522,49 @@
 					showView('staffPanel');
 				},
 				'members': () => { if (discordUser) { loadTeamData(); showView('dashboard'); } else { handleLogin(); } },
-				// Add a handler for the new dynamic bounties page
+				
+				// This 'bounties' handler is the only part that has changed.
 				'bounties': async () => {
 					pageTitleEl.textContent = "Active Bounties";
+					if (!isDexLoaded) await fetchPokemonData(); // Make sure Pokémon data is available
+
 					const q = query(collection(db, "bounties"), where("isActive", "==", true));
 					const snapshot = await getDocs(q);
+
 					if (snapshot.empty) {
-						pageContentEl.innerHTML = `<p class="text-gray-400">There are currently no active bounties.</p>`;
+						pageContentEl.innerHTML = `<p class="text-center text-gray-400">There are currently no active bounties.</p>`;
 					} else {
 						pageContentEl.innerHTML = snapshot.docs.map(doc => {
 							const b = doc.data();
 							return `
-							<div class="text-left max-w-3xl mx-auto space-y-4 bg-gray-900 p-6 rounded-lg mb-6">
+							<div class="text-left max-w-3xl mx-auto space-y-4 bg-gray-900 p-6 rounded-lg mb-6 shadow-lg">
 								<h3 class="text-2xl font-bold text-yellow-400">${b.name}</h3>
 								<p class="text-gray-400"><strong class="text-gray-200">Scoring:</strong> ${b.scoringMethod}</p>
 								<div>
 									<strong class="text-gray-200">Valid Entries:</strong>
-									<ul class="list-disc list-inside text-gray-400">${b.validEntries.map(e => `<li>${e.name}: <span class="font-semibold ${e.points > 0 ? 'text-green-400' : 'text-red-400'}">${e.points > 0 ? '+' : ''}${e.points}</span></li>`).join('')}</ul>
+									<ul class="text-gray-400 space-y-2 mt-2">${b.validEntries.map(e => {
+										// Find the pokemon in our data to get its ID
+										const pokemon = pokemonData.find(p => p.name.toLowerCase() === e.name.toLowerCase());
+										// Construct the URL for the regular (non-shiny) sprite
+										const spriteUrl = pokemon 
+											? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png` 
+											: 'https://placehold.co/48x48/374151/9ca3af?text=?';
+										
+										return `
+										<li class="flex items-center gap-4 bg-gray-800 p-2 rounded-md">
+											<img src="${spriteUrl}" class="w-12 h-12 bg-gray-700 rounded-full" alt="${e.name}">
+											<span>${e.name}:</span>
+											<span class="font-semibold ${e.points > 0 ? 'text-green-400' : 'text-red-400'}">${e.points > 0 ? '+' : ''}${e.points}</span>
+										</li>`;
+									}).join('')}</ul>
 								</div>
 								 <div>
 									<strong class="text-gray-200">Nature Bonus:</strong>
-									<ul class="list-disc list-inside text-gray-400">${b.natureBonuses.map(n => `<li>${n.name}: <span class="font-semibold ${n.points > 0 ? 'text-green-400' : 'text-red-400'}">${n.points > 0 ? '+' : ''}${n.points}</span></li>`).join('')}</ul>
+									<ul class="list-disc list-inside text-gray-400 mt-2">${b.natureBonuses.map(n => `<li>${n.name}: <span class="font-semibold ${n.points > 0 ? 'text-green-400' : 'text-red-400'}">${n.points > 0 ? '+' : ''}${n.points}</span></li>`).join('')}</ul>
 								</div>
 								<div>
 									<strong class="text-gray-200">Prizes:</strong>
-									<ul class="list-disc list-inside text-gray-400">${b.prizes.map(p => `<li>${p}</li>`).join('')}</ul>
+									<ul class="list-disc list-inside text-gray-400 mt-2">${b.prizes.map(p => `<li>${p}</li>`).join('')}</ul>
 								</div>
 							</div>
 							`;
