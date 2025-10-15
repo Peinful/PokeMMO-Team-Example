@@ -340,28 +340,33 @@
 			updateUIVisibility(); // UPDATED: Central function to control UI based on roles.
 		}
 
-		// UPDATED: New function to control what UI elements are visible based on roles.
+		// UPDATED: Corrected function to no longer reference the deleted icon.
 		function updateUIVisibility() {
 			// Map permissions to the element ID of their corresponding icon.
 			const permissionToIconId = {
 				'can_verify_shinies': 'verification-panel-icon',
-				// Add other mappings here if you create icons for them.
 				// e.g., 'can_manage_bounties': 'bounties-icon'
 			};
 
 			// Hide all permission-based icons initially
-			Object.values(permissionToIconId).forEach(id => document.getElementById(id)?.classList.add('hidden'));
+			Object.values(permissionToIconId).forEach(id => {
+				const iconElement = document.getElementById(id);
+				if (iconElement) {
+					iconElement.classList.add('hidden');
+				}
+			});
 
 			// Show icons based on user's permissions
 			userPermissions.forEach(perm => {
 				const iconId = permissionToIconId[perm];
-				if (iconId) document.getElementById(iconId).classList.remove('hidden');
+				const iconElement = document.getElementById(iconId);
+				if (iconElement) {
+					iconElement.classList.remove('hidden');
+				}
 			});
 
-			// Always show Site Master icon if user is a site master
-			if (isSiteMaster) {
-				document.getElementById('sitemaster-panel-icon').classList.remove('hidden');
-			}
+			// The logic for the Site Master button is now ENTIRELY in renderAuthButtons,
+			// so no code is needed here for it.
 		}
 		
 		async function loadTeamData() {
