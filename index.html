@@ -278,6 +278,72 @@
         const POKEMON_COUNT = 649;
         const ALL_PERMISSIONS = ['can_verify_shinies', 'can_manage_recruitment', 'can_edit_pages', 'can_manage_bounties'];
 
+		const pageContents = {
+			'about-us': `
+				<div class="text-left max-w-3xl mx-auto space-y-6">
+					<p class="text-lg text-gray-300">Welcome to the Crow Syndicate. We are a dedicated PokeMMO team with a focus on mastering the competitive scene, fostering a strong and supportive community, and exploring every corner of the game together.</p>
+					<div>
+						<h3 class="text-2xl font-semibold text-white mb-2">Our Mission</h3>
+						<p class="text-gray-400">Our goal is to create an environment where players of all skill levels can thrive. Whether you're a seasoned PvP veteran aiming for the top of the leaderboards, a shiny hunter, or a new player looking for guidance, you have a place with us.</p>
+					</div>
+					<div>
+						<h3 class="text-2xl font-semibold text-white mb-2">What We Do</h3>
+						<ul class="list-disc list-inside text-gray-400 space-y-2">
+							<li><i class="fa-solid fa-crosshairs text-blue-400 w-6"></i> Actively participate in official and team-hosted PvP tournaments.</li>
+							<li><i class="fa-solid fa-wand-magic-sparkles text-yellow-400 w-6"></i> Organize group shiny hunts and maintain our Hall of Fame.</li>
+							<li><i class="fa-solid fa-book-open text-green-400 w-6"></i> Share knowledge, breeding services, and strategies to help members grow.</li>
+							<li><i class="fa-solid fa-users text-purple-400 w-6"></i> Host fun community events like catch contests and team meetings.</li>
+						</ul>
+					</div>
+				</div>
+			`,
+			'recruitment': `
+				<div class="text-left max-w-3xl mx-auto space-y-6">
+					<p class="text-lg text-gray-300">The Syndicate is always looking for active and ambitious trainers to join our ranks. We value dedication and a positive attitude above all else.</p>
+					<div>
+						<h3 class="text-2xl font-semibold text-white mb-2">Requirements to Join</h3>
+						<ul class="list-disc list-inside text-gray-400 space-y-2">
+							<li>Must have completed at least 2 regions.</li>
+							<li>Be active in-game and on our team's Discord server.</li>
+							<li>Show respect to all members and the wider PokeMMO community.</li>
+							<li>A willingness to learn and participate in team activities.</li>
+						</ul>
+					</div>
+					<div>
+						<h3 class="text-2xl font-semibold text-white mb-2">How to Apply</h3>
+						<p class="text-gray-400">If you meet the requirements and are ready to join, simply log in to this site with your Discord, navigate to the "Members" page, and click the "Join Crow Syndicate" button. An officer will be in touch with you shortly after!</p>
+					</div>
+				</div>
+			`,
+			'tournaments': `
+				<div class="text-left max-w-3xl mx-auto space-y-8">
+					<div>
+						<h3 class="text-2xl font-semibold text-white mb-2"><i class="fa-solid fa-calendar-days mr-3"></i>Upcoming Tournaments</h3>
+						<div class="bg-gray-900 p-4 rounded-lg">
+							<p class="text-gray-400">No official team tournaments are scheduled at this time. Check back soon for updates and keep an eye on our Discord announcements!</p>
+						</div>
+					</div>
+					<div>
+						<h3 class="text-2xl font-semibold text-white mb-2"><i class="fa-solid fa-trophy mr-3"></i>Past Results</h3>
+						<div class="bg-gray-900 p-4 rounded-lg space-y-3">
+							<p class="text-gray-500">No past results to display yet.</p>
+							</div>
+					</div>
+				</div>
+			`,
+			'bounties': `
+				<div class="text-left max-w-3xl mx-auto space-y-8">
+					<p class="text-lg text-gray-300">Bounties are special challenges issued by team leadership with in-game rewards. Prove your skill and claim your prize!</p>
+					<div>
+						<h3 class="text-2xl font-semibold text-white mb-2"><i class="fa-solid fa-list-check mr-3"></i>Active Bounties</h3>
+						<div class="bg-gray-900 p-4 rounded-lg">
+							 <p class="text-gray-400">There are currently no active bounties. New challenges will be announced on Discord!</p>
+						</div>
+						</div>
+				</div>
+			`
+		};
+
         // --- STATE ---
         let currentUser = null, discordUser = null, isSiteMaster = false, userPermissions = new Set();
         let pokemonData = [], allRanks = [], allUsers = [];
@@ -402,29 +468,32 @@
             else renderLoggedOutState();
         }
 
-        async function showPage(page) {
-            const handlers = {
-                'shiny-dex': async () => { if (!isDexLoaded) await fetchPokemonData(); renderDexGrid(); showView('shinyDex'); },
-                'shiny-hall': async () => { if (!isHallLoaded) await fetchPokemonData(); await loadAndRenderShinyHall(); showView('shinyHall'); },
-                'staff-panel': async () => {
-                    const canAccess = isSiteMaster || ALL_PERMISSIONS.some(p => userPermissions.has(p));
-                    if (!canAccess) return;
-                    await renderStaffPanel();
-                    showView('staffPanel');
-                },
-                'members': () => { if (discordUser) { loadTeamData(); showView('dashboard'); } else { handleLogin(); } }
-            };
-            if(handlers[page]) {
-                handlers[page]();
-            } else {
-                const link = document.querySelector(`a[data-page="${page}"]`);
-                if(link) {
-                    pageTitleEl.textContent = link.dataset.tooltip;
-                    pageContentEl.innerHTML = `<p>Content for the ${link.dataset.tooltip} section is coming soon!</p>`;
-                    showView('page');
-                }
-            }
-        }
+		async function showPage(page) {
+			const handlers = {
+				'shiny-dex': async () => { if (!isDexLoaded) await fetchPokemonData(); renderDexGrid(); showView('shinyDex'); },
+				'shiny-hall': async () => { if (!isHallLoaded) await fetchPokemonData(); await loadAndRenderShinyHall(); showView('shinyHall'); },
+				'staff-panel': async () => {
+					const canAccess = isSiteMaster || ALL_PERMISSIONS.some(p => userPermissions.has(p));
+					if (!canAccess) return;
+					await renderStaffPanel();
+					showView('staffPanel');
+				},
+				'members': () => { if (discordUser) { loadTeamData(); showView('dashboard'); } else { handleLogin(); } }
+			};
+
+			if (handlers[page]) {
+				handlers[page]();
+			} else {
+				// This 'else' block now handles all our new custom pages
+				const link = document.querySelector(`a[data-page="${page}"]`);
+				if (link) {
+					pageTitleEl.textContent = link.dataset.tooltip;
+					// Check if we have custom content for this page, otherwise show the default message
+					pageContentEl.innerHTML = pageContents[page] || `<p>Content for the ${link.dataset.tooltip} section is coming soon!</p>`;
+					showView('page');
+				}
+			}
+		}
 
         async function fetchPokemonData() { if (pokemonData.length > 0) return; try { const r = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${POKEMON_COUNT}`); const d = await r.json(); pokemonData = d.results.map((p, i) => ({ id: i + 1, name: p.name.charAt(0).toUpperCase() + p.name.slice(1), sprite: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${i + 1}.png` })); isDexLoaded = true;} catch (e) { console.error("Pokémon fetch failed:", e); }}
         async function loadUserDexData() { if (!currentUser) return; const snap = await getDoc(doc(db, `users/${currentUser.uid}/dex/shiny-dex`)); userDexData = snap.exists() ? new Set(snap.data().captured || []) : new Set(); }
