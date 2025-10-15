@@ -520,15 +520,28 @@
 			ranksListEl.querySelectorAll('.edit-rank-btn').forEach(b => b.addEventListener('click', (e) => { const r = allRanks.find(rk => rk.id === e.target.dataset.id); if(r) { document.getElementById('rank-id').value = r.id; document.getElementById('rank-name').value = r.name; ALL_PERMISSIONS.forEach(p => document.getElementById(`perm-${p}`).checked = (r.permissions || []).includes(p)); } }));
 			ranksListEl.querySelectorAll('.delete-rank-btn').forEach(b => b.addEventListener('click', async (e) => { if(confirm('Delete rank?')) { await deleteDoc(doc(db, 'ranks', e.target.dataset.id)); loadAllRanks(); } }));
 		}
-		rankForm.addEventListener('submit', async (e) => {
-			e.preventDefault();
-			const id = document.getElementById('rank-id').value, name = document.getElementById('rank-name').value;
-			const permissions = Array.from(document.querySelectorAll('[name=permissions]:checked')).map(el => el.value);
-			const rankData = { name, permissions };
-			if (id) await setDoc(doc(db, 'ranks', id), rankData); else await addDoc(collection(db, 'ranks'), rankData);
-			rankForm.reset(); document.getElementById('rank-id').value = ''; loadAllRanks();
-		});
-		document.getElementById('clear-rank-form').addEventListener('click', () => { rankForm.reset(); document.getElementById('rank-id').value = ''; });
+		
+		const rankForm = document.getElementById('rank-form');
+		if (rankForm) {
+			rankForm.addEventListener('submit', async (e) => {
+				e.preventDefault();
+				const id = document.getElementById('rank-id').value, name = document.getElementById('rank-name').value;
+				const permissions = Array.from(document.querySelectorAll('[name=permissions]:checked')).map(el => el.value);
+				const rankData = { name, permissions };
+				if (id) await setDoc(doc(db, 'ranks', id), rankData); else await addDoc(collection(db, 'ranks'), rankData);
+				rankForm.reset(); document.getElementById('rank-id').value = ''; loadAllRanks();
+			});
+
+			const clearRankFormBtn = document.getElementById('clear-rank-form');
+			if(clearRankFormBtn) {
+				clearRankFormBtn.addEventListener('click', () => { rankForm.reset(); document.getElementById('rank-id').value = ''; });
+			}
+		}
+
+		const userSearchInput = document.getElementById('user-search');
+		if (userSearchInput) {
+			userSearchInput.addEventListener('input', (e) => renderUserList(e.target.value));
+		}
 		
 		async function loadAllUsers() {
 			const snapshot = await getDocs(collection(db, 'users'));
@@ -547,7 +560,6 @@
 				loadAllUsers();
 			}));
 		}
-		userSearchInput.addEventListener('input', (e) => renderUserList(e.target.value));
 
 		function createFlyingCrows(n) { Array.from({ length: n }).forEach(() => {
 			const c = document.createElement('img'); c.src = 'images/flyingcrows.gif'; c.className = 'flying-crow';
